@@ -1,6 +1,7 @@
 import dataclasses
 import enum
 import logging
+import random
 import uuid
 from typing import Optional, Tuple, Iterable, Mapping
 from cltl.brain.long_term_memory import LongTermMemory
@@ -10,8 +11,44 @@ import json
 from tqdm import tqdm
 import os
 from pathlib import Path
+from datetime import date, datetime
+from random import getrandbits
+from cltl.commons.discrete import UtteranceType
+from cltl.brain.utils.helper_functions import brain_response_to_json
 
 logger = logging.getLogger(__name__)
+
+mention = {
+                    "chat": 1,
+                    "turn": 1,
+                    "author": {"label": "lenka", "type": ["person"],
+                               'uri': "http://cltl.nl/leolani/friends/lenka"},
+                    "utterance": "",
+                    "utterance_type": UtteranceType.TEXT_MENTION,
+                    "position": "",
+                    "item": {'label': 'piek', 'type': ['person'],
+                             'uri': ""},
+                    "timestamp": datetime.now(),
+                    "context_id": 1
+                }
+statement = {
+                    "chat": 1,
+                    "turn": 1,
+                    "author": {"label": "lenka", "type": ["person"],
+                               'uri': "http://cltl.nl/leolani/friends/lenka"},
+                    "utterance": "",
+                    "utterance_type": UtteranceType.STATEMENT,
+                    "position": "",
+                    "subject": {"label": "piek", "type": ["person"],
+                                "uri": ""},
+                    "predicate": {"label": "be-from", "uri": "http://cltl.nl/leolani/n2mu/be-from"},
+                    "object": {"label": "amsterdam", "type": ["location"],
+                               "uri": "http://cltl.nl/leolani/world/amsterdam"},
+                    "item": {'label': 'piek', 'type': ['person'],
+                             'uri': ""},
+                    "timestamp": datetime.now(),
+                    "context_id": 1
+                }
 
 class ConvState(enum.Enum):
     START = 1
@@ -79,18 +116,23 @@ class GetToKnowMore(GetToKnowMore):
     def state(self) -> State:
         return self._state
 
+    def triple_to_string(selfself, triple):
+        say = "\t("
+        if "subject" in triple:
+            say += triple["subject"]["label"]
+        say += ", "
+        if "predicate" in triple:
+            say += triple["predicate"]["label"]
+        say += ", "
+        if "object" in triple:
+            say += triple["object"]["label"]
+        say += ")"
+        return say
+
     def print_goal(self, goal):
-        for g in goal:
-            say = "\t("
-            if "subject" in g:
-                say += g["subject"]["label"]
-            say +=", "
-            if "predicate" in g:
-                say += g["predicate"]["label"]
-            say +=", "
-            if "object" in g:
-                say += g["object"]["label"]
-            say +=")"
+        for gap in goal:
+            g = gap["triple"]
+            say = self.triple_to_string(g)
             print(say)
 
     def get_subject_gaps (self, subject):
@@ -124,16 +166,24 @@ class GetToKnowMore(GetToKnowMore):
         else:
             return None
 
+    def has_gap (self, gap, goals):
+        for g in goals:
+            if self.triple_to_string(gap["triple"])==self.triple_to_string(g["triple"]):
+                return True
+        return False
+
     def goal_check(self, goal, status):
         new_goal = []
         achievements =[]
         for triple_s in status:
-            for triple_g in goal:
+            for gap in goal:
+                thought = gap["thought"]
+                triple_g = gap["triple"]
                 if not self.is_subject_gap_filled(triple_g, triple_s):
-                    if not triple_g in new_goal:
-                        new_goal.append(triple_g)
+                    if not self.has_gap(triple_g, new_goal):
+                        new_goal.append(gap)
                 elif not triple_s in achievements:
-                    achievements.append( triple_s)
+                    achievements.append(triple_s)
         return new_goal, achievements
 
     def get_triples_from_question_responses(self, responses):
@@ -189,7 +239,7 @@ class GetToKnowMore(GetToKnowMore):
             triple['object'] = goal['triple']['_object']
         return triple
 
-    def get_gaps_from_throught_response(self, responses):
+    def get_gaps_from_thought_response(self, responses):
         # "_subject_gaps":
         # {"_subject": [
         #     {"_known_entity": {"_id": "http://cltl.nl/leolani/world/lenka-1", "_label": "lenka", "_offset": null,
@@ -199,49 +249,80 @@ class GetToKnowMore(GetToKnowMore):
         #      "_entity": {"_id": "http://cltl.nl/leolani/n2mu/", "_label": "", "_offset": null, "_confidence": 0.0,
         #                  "_types": ["person"]}},
 
-        triples = []
+        # {"_complement": [1
+        #     { "_entity": {"_id": "http://cltl.nl/leolani/n2mu/", "_label": "", "_offset": null, "_confidence": 0.0, "_types": ["person"]}},
+
+        #      "_predicate": {"_id": "http://cltl.nl/leolani/n2mu/be-ancestor-of", "_label": "be-ancestor-of",
+        #                     "_offset": null, "_confidence": 0.0, "_cardinality": 1},
+        #       "_known_entity": {"_id": "http://cltl.nl/leolani/world/lenka-1", "_label": "lenka", "_offset": null,
+        #                   #                        "_confidence": 0.0, "_types": ["person", "Instance"]},
+
+        gaps = []
         for response in responses:
             if 'thoughts' in response:
-                if "_subject_gaps" in response['thoughts']:
-                    for gap in response['thoughts']['_subject_gaps']["_subject"]:
-                        triple = self.get_triple_from_thought_subject(gap)
-                        triples.append(triple)
-                if "_complement_gaps" in response['thoughts']:
-                    for gap in response['thoughts']['_subject_gaps']["_subject"]:
-                        triple = self.get_triple_from_thought_subject(gap)
-                        triples.append(triple)
-        return triples
+                print('thoughts', response['thoughts'])
+                if "_subject_gaps" in response['thoughts'] and "_subject" in response['thoughts']['_subject_gaps']:
+                    print(response['thoughts']['_subject_gaps'])
+                    for thought in response['thoughts']['_subject_gaps']["_subject"]:
+                        gap={}
+                        gap["thought"]=thought
+                        triple = self.get_triple_from_thought_subject(thought)
+                        gap["triple"]=triple
+                        gaps.append(gap)
+                    for thought in response['thoughts']['_subject_gaps']["_complement"]:
+                        gap={}
+                        gap["thought"]=thought
+                        triple = self.get_triple_from_thought_subject(thought)
+                        gap["triple"]=triple
+                        gaps.append(gap)
+                if "_complement_gaps" in response['thoughts'] and "_subject" in response['thoughts']['_complement_gaps']:
+                    print(response['thoughts']['_complement_gaps'])
+                    for thought in response['thoughts']['_complement_gaps']["_subject"]:
+                        gap={}
+                        gap["thought"]=thought
+                        triple = self.get_triple_from_thought_subject(thought)
+                        gap["triple"]=triple
+                        gaps.append(gap)
+                    for thought in response['thoughts']['_complement_gaps']["_complement"]:
+                        gap={}
+                        gap["thought"]=thought
+                        triple = self.get_triple_from_thought_subject(thought)
+                        gap["triple"]=triple
+                        gaps.append(gap)
+        #print(gaps)
+        return gaps
 
-    def aim_for_goal(self, goal_triples, brain, replier) -> Optional[str]:
-        logger.debug("Received a goal %s in state %s", goal_triples, self.state.conv_state.name)
-        goal_triples=goal_triples[:5]
+    def aim_for_goal(self, goal_thought_triples, brain, replier) -> Optional[str]:
+        logger.debug("Received a goal %s in state %s", goal_thought_triples, self.state.conv_state.name)
+        goal_thought_triples=goal_thought_triples[:5]
         ### Goal check
 
         graph_status = []
-        if goal_triples:
-            for capsule in  goal_triples[:5]:
+        if goal_thought_triples:
+            for gap in  goal_thought_triples:
                 #### check the graph
-                response = brain.query_brain(capsule)
+                triple = gap["triple"]
+                response = brain.query_brain(triple)
                 if response:
                     graph_status.append(response)
                 else:
-                    print('No response from eKG', capsule)
+                    print('No response from eKG', triple)
         else:
             print("No goal triples detected.")
             self._state = ConvState.REACHED
             return
 
-        # print(graph_status)
+        print(graph_status)
         status_triples= self.get_triples_from_question_responses(graph_status)
 
         # print('goal_triples', len(goal_triples), goal_triples)
-        print('status_triples', len(status_triples))
+        # print('status_triples', len(status_triples))
 
         ### we got the current status of the eKG
         ### the new goal is determined by checking this
-        new_goals, achievements = self.goal_check(goal_triples, status_triples)
-        print('goal', len(goal_triples))
-        self.print_goal(goal_triples)
+        new_goals, achievements = self.goal_check(goal_thought_triples, status_triples)
+        print('goal', len(goal_thought_triples))
+        self.print_goal(goal_thought_triples)
         print('achievements', len(achievements))
         self.print_goal(achievements)
         print('new_goals', len(new_goals))
@@ -251,22 +332,32 @@ class GetToKnowMore(GetToKnowMore):
         if new_goals:
             self._goal = new_goals
 
-            reply = None
-
-            for goal in tqdm(new_goals):
-                ask = {"response" : [], "question" : goal}
-                reply = replier.reply_to_question(ask)
-                self._attempts +=1
+            reply = "NO REPLY GENERATED"
+            while reply == "NO REPLY GENERATED":
+            # for gap in tqdm(new_goals):
+                gap = random.choice(list(new_goals))
+                thought = {"_subject_gaps": {"_subject": [gap["thought"]], "_complement": []}}
+                ask = {"response": [], "statement": gap["triple"], "thoughts": thought}
+                # reply = replier.reply_to_question(ask)
+                reply = replier.reply_to_statement(ask, thought_options=["_subject_gaps"])
+                self._attempts += 1
                 if not reply:
                     reply = "NO REPLY GENERATED"
-                print(goal)
-                print(reply)
+
+            print(triple)
+            print(reply)
+            triple['object']['label']='piek'
+            capsule = self.make_capsule_from_triple(triple)
+            response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
+            print("response", response)
+
+
         else:
             #### We are done
             self.state.conv_state = ConvState.REACHED
 
         if self.state.conv_state == ConvState.START:
-            response = "Tell me more about yourself"
+            response = "Tell me more!"
             self._state = self.state.transition(ConvState.QUERY)
 
     def response(self) -> Optional[str]:
@@ -280,7 +371,23 @@ class GetToKnowMore(GetToKnowMore):
     def clear(self):
         self._state = self._state.transition(ConvState.START)
 
-
+    def make_capsule_from_triple(selfs, triple):
+        capsule = {"chat": 1,
+                   "turn": 1,
+                   "author": {"label": "lenka", "type": ["person"],
+                              'uri': "http://cltl.nl/leolani/friends/lenka"},
+                   "utterance": "",
+                   "utterance_type": UtteranceType.STATEMENT,
+                   "position": "",
+                   ###
+                   "subject": triple['subject'],
+                   "predicate": triple['predicate'],
+                   "object": triple['object'],
+                   ###
+                   "context_id": 1,
+                   "timestamp": datetime.now()
+                   }
+        return capsule
 
 if __name__ == "__main__":
     goal_file = "../../../examples/data/basic-questions-responses.json"
@@ -294,7 +401,12 @@ if __name__ == "__main__":
     brain = LongTermMemory(address="http://localhost:7200/repositories/sandbox",
                            log_dir=Path(log_path),
                            clear_all=False)
+    #### Get thoughts about topic
+    goal =[brain_response_to_json(brain.capsule_mention(mention))]
+    response = brain.capsule_statement(statement, reason_types=True, return_thoughts=True, create_label=False)
+    goal =[brain_response_to_json(response)]
+
     replier = LenkaReplier()
     g2km = GetToKnowMore()
-    goal_triples = g2km.get_gaps_from_throught_response(goal)
-    g2km.aim_for_goal(goal_triples, brain, replier)
+    goals = g2km.get_gaps_from_thought_response(goal)
+    g2km.aim_for_goal(goals, brain, replier)
