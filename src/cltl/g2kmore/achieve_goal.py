@@ -116,7 +116,7 @@ class GetToKnowMore(GetToKnowMore):
     def state(self) -> State:
         return self._state
 
-    def triple_to_string(selfself, triple):
+    def triple_to_string(self, triple):
         say = "\t("
         if "subject" in triple:
             say += triple["subject"]["label"]
@@ -168,7 +168,9 @@ class GetToKnowMore(GetToKnowMore):
 
     def has_gap (self, gap, goals):
         for g in goals:
-            if self.triple_to_string(gap["triple"])==self.triple_to_string(g["triple"]):
+            gap_string = self.triple_to_string(gap)
+            g_string = self.triple_to_string(g["triple"])
+            if gap_string==g_string:
                 return True
         return False
 
@@ -333,9 +335,11 @@ class GetToKnowMore(GetToKnowMore):
             self._goal = new_goals
 
             reply = "NO REPLY GENERATED"
+            gap = {}
             while reply == "NO REPLY GENERATED":
             # for gap in tqdm(new_goals):
                 gap = random.choice(list(new_goals))
+            ## fix _subject and _complement choice
                 thought = {"_subject_gaps": {"_subject": [gap["thought"]], "_complement": []}}
                 ask = {"response": [], "statement": gap["triple"], "thoughts": thought}
                 # reply = replier.reply_to_question(ask)
@@ -343,10 +347,18 @@ class GetToKnowMore(GetToKnowMore):
                 self._attempts += 1
                 if not reply:
                     reply = "NO REPLY GENERATED"
-
-            print(triple)
+            # This is a text signal that needs to be posted to the event bus
             print(reply)
+            # We now use the triple to fake a response from the user to resolve the gap:
+            triple = gap["triple"]
+            triple["predicate"]['label']=triple["predicate"]['label'].replace(" ", "-")
+            triple["predicate"]['uri']=triple["predicate"]['uri'].replace(" ", "-")
             triple['object']['label']='piek'
+            print('Triple for the faked user')
+            print(self.triple_to_string(triple))
+            print(triple["subject"])
+            print(triple["predicate"])
+            print( triple["object"])
             capsule = self.make_capsule_from_triple(triple)
             response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
             print("response", response)
