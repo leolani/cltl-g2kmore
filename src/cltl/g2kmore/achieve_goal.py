@@ -354,11 +354,7 @@ class GetToKnowMore(GetToKnowMore):
             triple["predicate"]['label']=triple["predicate"]['label'].replace(" ", "-")
             triple["predicate"]['uri']=triple["predicate"]['uri'].replace(" ", "-")
             triple['object']['label']='piek'
-            print('Triple for the faked user')
-            print(self.triple_to_string(triple))
-            print(triple["subject"])
-            print(triple["predicate"])
-            print( triple["object"])
+            print('Triple for the faked user', self.triple_to_string(triple))
             capsule = self.make_capsule_from_triple(triple)
             response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
             print("response", response)
