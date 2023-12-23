@@ -217,9 +217,7 @@ def get_gaps_from_thought_response(responses):
     gaps = []
     for response in responses:
         if 'thoughts' in response:
-            print('thoughts', response['thoughts'])
             if "_subject_gaps" in response['thoughts'] and not response['thoughts']['_subject_gaps']==None and "_subject" in response['thoughts']['_subject_gaps']:
-                print(response['thoughts']['_subject_gaps'])
                 for thought in response['thoughts']['_subject_gaps']["_subject"]:
                     gap = {"count": 1}
                     gap["thought"] = thought
@@ -233,7 +231,6 @@ def get_gaps_from_thought_response(responses):
                     gap["triple"] = triple
                     gaps.append(gap)
             if "_complement_gaps" in response['thoughts'] and not response['thoughts']['_complement_gaps']==None and "_subject" in response['thoughts']['_complement_gaps']:
-                print(response['thoughts']['_complement_gaps'])
                 for thought in response['thoughts']['_complement_gaps']["_subject"]:
                     gap = {"count": 1}
                     gap["thought"] = thought
