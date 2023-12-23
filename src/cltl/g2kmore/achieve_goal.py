@@ -110,6 +110,7 @@ class GetToKnowMore(GetToKnowMore):
     def _define(self, target, type):
         goal = [brain_response_to_json(self._brain.capsule_mention(util.make_target(target, type), reason_types=True, return_thoughts=True, create_label=False))]
         self._goal = util.get_gaps_from_thought_response(goal)
+        print("Goal", len(self._goal), " gaps")
         self._state=ConvState.START
 
     def _evaluate(self):
