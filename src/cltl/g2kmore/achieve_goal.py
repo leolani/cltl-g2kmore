@@ -122,9 +122,11 @@ class GetToKnowMore(GetToKnowMore):
             return
         if not self._focus:
             self._focus = random.choice(list(self._goal))
+            self._goal_attempts += 1
         elif self._focus["count"] > self._focus_attempt_max:
             print("Focus give up after attempts", self._focus["count"])
             self._focus = random.choice(list(self._goal))
+            self._goal_attempts += 1
         print("Current focus is", util.triple_to_string(self._focus['triple']))
         triple = self._focus["triple"]
         response = self._brain.query_brain(triple)
@@ -147,7 +149,6 @@ class GetToKnowMore(GetToKnowMore):
 
     def _pursui(self):
         self._focus["count"] +=1
-        self._goal_attempts += 1
         reply = "NO REPLY GENERATED"
         while reply == "NO REPLY GENERATED":
             # for gap in tqdm(new_goals):
@@ -219,6 +220,9 @@ if __name__ == "__main__":
 
     replier = LenkaReplier()
     g2km = GetToKnowMore(brain, replier)
+    ##### Settings for limits of goals to pursui and attempts
+    g2km._goal_attempts_max = 10  # threshold for total goal attempts
+    g2km._focus_attempt_max = 3  # threshold for each specific subgoal
     #### Get thoughts about target
     target = "piek"
     type = "person"
