@@ -79,10 +79,9 @@ class GetToKnowMore(GetToKnowMore):
         self._goal = None
         self._achievements = []
         self._focus = None
-        self._status = None
-        self._attempts = 0
-        self._attemptsmax = 5
-        self._hopeless = 3
+        self._goal_attempts = 0
+        self._goal_attempts_max = 5
+        self._focus_attempt_max = 3
         self._brain = brain
         self._replier = replier
 
@@ -100,7 +99,7 @@ class GetToKnowMore(GetToKnowMore):
             return "I am so happy"
         elif self._state == ConvState.GIVEUP:
             print("ACHIEVEMENTS", self._achievements)
-            print("Attempts", self._attempts)
+            print("Attempts", self._goal_attempts)
             return "This is all I could do! Sorry."
         return None
 
@@ -118,15 +117,15 @@ class GetToKnowMore(GetToKnowMore):
             print("No goals left.")
             self._state=ConvState.REACHED
             return
-        elif self._attempts > self._attemptsmax:
+        elif self._goal_attempts > self._goal_attempts_max:
             self._state=ConvState.GIVEUP
             return
         if not self._focus:
             self._focus = random.choice(list(self._goal))
-        elif self._focus["count"] > self._hopeless:
+        elif self._focus["count"] > self._focus_attempt_max:
             print("Focus give up after attempts", self._focus["count"])
             self._focus = random.choice(list(self._goal))
-        print("Current focus is", self._focus)
+        print("Current focus is", util.triple_to_string(self._focus['triple']))
         triple = self._focus["triple"]
         response = self._brain.query_brain(triple)
         if not response:
@@ -139,7 +138,7 @@ class GetToKnowMore(GetToKnowMore):
                 #### if response good, move focus from goal to achievent with response
                 # set focus to None
                 print("We have a response", response["response"])
-                print("We shift focus")
+                print("We can shift focus")
                 self._goal = util.remove_gap_from_goal(self._focus, self._goal)
                 achievement = response["response"]
                 achievement.update(self._focus)
@@ -148,7 +147,7 @@ class GetToKnowMore(GetToKnowMore):
 
     def _pursui(self):
         self._focus["count"] +=1
-        self._attempts += 1
+        self._goal_attempts += 1
         reply = "NO REPLY GENERATED"
         while reply == "NO REPLY GENERATED":
             # for gap in tqdm(new_goals):
@@ -159,7 +158,7 @@ class GetToKnowMore(GetToKnowMore):
             if not reply:
                 reply = "NO REPLY GENERATED"
         # This is a text signal that needs to be posted to the event bus
-        print(reply)
+        print('Trying to get to know more', reply)
         return reply
 
     def _wait(self):
@@ -177,6 +176,9 @@ class GetToKnowMore(GetToKnowMore):
         response = self._brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
         print("response pushing statement", response)
 
+    ## Main loop that 1) defines the task, pursuise the goal, waits for an effect and evaluates the results
+    ## Evaluating results adapts the goal
+    ## pursui, wait, evaluate continues untill all goals are achieved or the attempts exceed the giveup threshold
     def _take_action(self, target, type)-> Optional[str]:
         logger.debug("Setting a goal for %s as a %s in state %s", target, type, self.state.conv_state.name)
         if self.state.conv_state == ConvState.START:
@@ -190,7 +192,7 @@ class GetToKnowMore(GetToKnowMore):
             self._pursui()
             self._wait()
             self._evaluate()
-            self._attempts +=1
+            self._goal_attempts +=1
 
         say = self._response()
         print (say)
@@ -202,9 +204,19 @@ if __name__ == "__main__":
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
-    brain = LongTermMemory(address="http://localhost:7200/repositories/sandbox2",
+    brain = LongTermMemory(address="http://localhost:7200/repositories/sandbox",
                            log_dir=Path(log_path),
                            clear_all=False)
+
+    # testing the brain:
+    # context = util.make_context()
+    # response = brain.capsule_context(context)
+    # print("response pushing context", response)
+    #
+    # capsule = util.make_capsule_from_triple()
+    # response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=False)
+    # print("response pushing statement", response)
+
     replier = LenkaReplier()
     g2km = GetToKnowMore(brain, replier)
     #### Get thoughts about target
@@ -213,81 +225,3 @@ if __name__ == "__main__":
     g2km._take_action(target, type)
 
 
-
-
-    ############
-
-    ### Obsolete
-    # def aim_for_goal(self, goal_thought_triples, brain, replier) -> Optional[str]:
-    #     logger.debug("Setting a goal for %s as a %s in state %s", target, type, self.state.conv_state.name)
-    #     goal_thought_triples=goal_thought_triples[:5]
-    #     ### Goal check
-    #
-    #     graph_status = []
-    #     if goal_thought_triples:
-    #         for gap in  goal_thought_triples:
-    #             #### check the graph
-    #             triple = gap["triple"]
-    #             response = brain.query_brain(triple)
-    #             if response:
-    #                 graph_status.append(response)
-    #             else:
-    #                 print('No response from eKG', triple)
-    #     else:
-    #         print("No goal triples detected.")
-    #         self._state = ConvState.REACHED
-    #         return
-    #
-    #     print(graph_status)
-    #     status_triples= self.get_triples_from_question_responses(graph_status)
-    #
-    #     # print('goal_triples', len(goal_triples), goal_triples)
-    #     # print('status_triples', len(status_triples))
-    #
-    #     ### we got the current status of the eKG
-    #     ### the new goal is determined by checking this
-    #     new_goals, achievements = self.goal_check(goal_thought_triples, status_triples)
-    #     print('goal', len(goal_thought_triples))
-    #     self.print_goal(goal_thought_triples)
-    #     print('achievements', len(achievements))
-    #     self.print_goal(achievements)
-    #     print('new_goals', len(new_goals))
-    #     self.print_goal(new_goals)
-    #
-    #     ### if there is a new_goal, we are generating replies for all subgoals
-    #     if new_goals:
-    #         self._goal = new_goals
-    #
-    #         reply = "NO REPLY GENERATED"
-    #         gap = {}
-    #         while reply == "NO REPLY GENERATED":
-    #         # for gap in tqdm(new_goals):
-    #             gap = random.choice(list(new_goals))
-    #         ## fix _subject and _complement choice
-    #             thought = {"_subject_gaps": {"_subject": [gap["thought"]], "_complement": []}}
-    #             ask = {"response": [], "statement": gap["triple"], "thoughts": thought}
-    #             # reply = replier.reply_to_question(ask)
-    #             reply = replier.reply_to_statement(ask, thought_options=["_subject_gaps"])
-    #             self._attempts += 1
-    #             if not reply:
-    #                 reply = "NO REPLY GENERATED"
-    #         # This is a text signal that needs to be posted to the event bus
-    #         print(reply)
-    #         # We now use the triple to fake a response from the user to resolve the gap:
-    #         triple = gap["triple"]
-    #         triple["predicate"]['label']=triple["predicate"]['label'].replace(" ", "-")
-    #         triple["predicate"]['uri']=triple["predicate"]['uri'].replace(" ", "-")
-    #         triple['object']['label']='piek'
-    #         print('Triple for the faked user', self.triple_to_string(triple))
-    #         capsule = self.make_capsule_from_triple(triple)
-    #         response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
-    #         print("response", response)
-    #
-    #
-    #     else:
-    #         #### We are done
-    #         self.state.conv_state = ConvState.REACHED
-    #
-    #     if self.state.conv_state == ConvState.START:
-    #         response = "Tell me more!"
-    #         self._state = self.state.transition(ConvState.QUERY)

@@ -1,13 +1,27 @@
 from datetime import date, datetime
 from cltl.commons.discrete import UtteranceType
+from random import getrandbits
 
+from cltl.commons.discrete import UtteranceType
+
+context_id, place_id, start_date = getrandbits(8), getrandbits(8), date(2017, 10, 24)
+
+def make_context():
+    context = {"context_id": context_id,
+     "date": start_date,
+     "place": "Piek's office",
+     "place_id": place_id,
+     "country": "Netherlands",
+     "region": "North Holland",
+     "city": "Amsterdam"}
+    return context
 
 def make_target(target, type):
     mention = {
                         "chat": 1,
                         "turn": 1,
-                        "author": {"label": "lenka", "type": ["person"],
-                                   'uri': "http://cltl.nl/leolani/friends/lenka"},
+                        "author": {"label": "dummy", "type": ["person"],
+                                   'uri': "http://cltl.nl/leolani/friends/dummy"},
                         "utterance": "",
                         "utterance_type": UtteranceType.TEXT_MENTION,
                         "position": "",
@@ -53,6 +67,26 @@ def make_capsule_from_triple(triple):
                ###
                "context_id": 1,
                "timestamp": datetime.now()
+               }
+    return capsule
+
+def make_capsule_from_triple():
+    capsule = {"chat": 2,
+               "turn": 1,
+               "author": {"label": "selene", "type": ["person"], 'uri': "http://cltl.nl/leolani/friends/selene-1"},
+               "utterance": "I think Lenka is from Serbia",
+               "utterance_type": UtteranceType.STATEMENT,
+               "position": "0-25",
+               "subject": {"label": "piek", "type": ["person"], "uri": ""},
+               "predicate": {"label": "be-from", "uri": "http://cltl.nl/leolani/n2mu/be-from"},
+               "object": {"label": "serbia", "type": ["location"],
+                          "uri": ""},
+               "perspective": {"certainty": 0.5,
+                               "polarity": 1,
+                               "sentiment": 0
+                               },
+               "timestamp": datetime.combine(start_date, datetime.now().time()),
+               "context_id": context_id
                }
     return capsule
 
