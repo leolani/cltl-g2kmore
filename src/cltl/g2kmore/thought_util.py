@@ -70,7 +70,7 @@ def make_capsule_from_triple(triple):
                }
     return capsule
 
-def make_capsule_from_triple():
+def make_test_capsule_from_triple():
     capsule = {"chat": 2,
                "turn": 1,
                "author": {"label": "selene", "type": ["person"], 'uri': "http://cltl.nl/leolani/friends/selene-1"},

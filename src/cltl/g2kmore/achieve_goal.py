@@ -205,7 +205,7 @@ if __name__ == "__main__":
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
-    brain = LongTermMemory(address="http://localhost:7200/repositories/sandbox",
+    brain = LongTermMemory(address="http://localhost:7200/repositories/Bijlmer",
                            log_dir=Path(log_path),
                            clear_all=False)
 
