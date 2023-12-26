@@ -143,12 +143,15 @@ class GetToKnowMore(GetToKnowMore):
                 print("We can shift focus")
                 self._goal = util.remove_gap_from_goal(self._focus, self._goal)
                 achievement = response["response"]
-                achievement.update(self._focus)
+                achievement.append(self._focus)
                 self._achievements.append(achievement)
-                self._focus = None
+                self._focus = random.choice(list(self._goal))
 
     def _pursui(self):
-        self._focus["count"] +=1
+        if not "count" in self._focus:
+            self._focus["count"]=1
+        else:
+            self._focus["count"] +=1
         reply = "NO REPLY GENERATED"
         while reply == "NO REPLY GENERATED":
             # for gap in tqdm(new_goals):
@@ -175,7 +178,7 @@ class GetToKnowMore(GetToKnowMore):
         print('Triple as the fake user input', util.triple_to_string(triple))
         capsule = util.make_capsule_from_triple(triple)
         response = self._brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
-        print("response pushing statement", response)
+        print("response pushing statement", response["response"])
 
     ## Main loop that 1) defines the task, pursuise the goal, waits for an effect and evaluates the results
     ## Evaluating results adapts the goal
@@ -205,7 +208,7 @@ if __name__ == "__main__":
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
-    brain = LongTermMemory(address="http://localhost:7200/repositories/Bijlmer",
+    brain = LongTermMemory(address="http://localhost:7200/repositories/sandbox",
                            log_dir=Path(log_path),
                            clear_all=False)
 
