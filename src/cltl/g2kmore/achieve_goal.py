@@ -153,7 +153,9 @@ class GetToKnowMore(GetToKnowMore):
         else:
             self._focus["count"] +=1
         reply = "NO REPLY GENERATED"
-        while reply == "NO REPLY GENERATED":
+        trying = 0
+        while reply == "NO REPLY GENERATED" and trying < 10:
+            trying +=1
             # for gap in tqdm(new_goals):
             ## fix _subject and _complement choice
             thought = {"_subject_gaps": {"_subject": [self._focus["thought"]], "_complement": []}}
