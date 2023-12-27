@@ -279,3 +279,31 @@ def get_gaps_from_thought_response(responses):
                     gaps.append(gap)
     # print(gaps)
     return gaps
+
+
+def know_about_target_subject(target):
+    query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/> \
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
+            PREFIX dc: <http://purl.org/dc/elements/1.1/> \
+            select ?s ?p ?ol where { \
+                ?s ?p ?o . \
+                ?s rdfs:label "
+    query += '\"'+target+'\" .'
+    query +='    ?o rdfs:label ?ol . \
+                FILTER( STRSTARTS(str(?p), str(n2mu:))) \
+            }'
+    return query
+
+
+def know_about_target_object(target):
+    query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/> \
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
+            PREFIX dc: <http://purl.org/dc/elements/1.1/> \
+            select ?sl ?p ?o where { \
+                ?s ?p ?o . \
+                ?o rdfs:label "
+    query += '\"'+target+'\" .'
+    query +='    ?s rdfs:label ?sl . \
+                FILTER( STRSTARTS(str(?p), str(n2mu:))) \
+            }'
+    return query

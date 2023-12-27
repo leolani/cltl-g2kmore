@@ -6,7 +6,7 @@ The module proceeds according to the following steps, defined in _take_action(ta
 1. _define(target, type): defines the goals
 2.  _evaluate(): evaluate the status of the goal:
 3. While the _state is not REACHED or GIVEUP, do:
-   1. _pursui
+   1. _pursue
    2. _wait
    3. _evaluate()
 4. When done, _repond() the result

@@ -5,6 +5,8 @@ import random
 import uuid
 from typing import Optional, Tuple, Iterable, Mapping
 from cltl.brain.long_term_memory import LongTermMemory
+from cltl.brain.infrastructure import StoreConnector, RdfBuilder
+from cltl.brain.basic_brain import BasicBrain
 from cltl.reply_generation.lenka_replier import LenkaReplier
 from cltl.g2kmore.api import GetToKnowMore
 import json
@@ -75,6 +77,8 @@ class State:
 
 class GetToKnowMore(GetToKnowMore):
     def __init__(self, brain, replier):
+        self._target = None
+        self._target_type = None
         self._state = State(ConvState.START)
         self._goal = None
         self._achievements = []
@@ -91,6 +95,10 @@ class GetToKnowMore(GetToKnowMore):
 
 
     def _response(self) -> Optional[str]:
+        response = self._brain._submit_query(util.know_about_target_subject(self._target))
+        response += self._brain._submit_query(util.know_about_target_object(self._target))
+
+        print("This is what I know about %s: %s", self._target, response)
         if self._state == ConvState.START:
             self._state = self.state.transition(ConvState.QUERY)
             return "Hi, nice to meet you! What is your name?"
@@ -107,6 +115,8 @@ class GetToKnowMore(GetToKnowMore):
         self._state = self._state.transition(ConvState.START)
 
     def _define(self, target, type):
+        self._target = target
+        self._target_type = type
         goal = [brain_response_to_json(self._brain.capsule_mention(util.make_target(target, type), reason_types=True, return_thoughts=True, create_label=False))]
         self._goal = util.get_gaps_from_thought_response(goal)
         print("Goal", len(self._goal), " gaps")
@@ -147,7 +157,7 @@ class GetToKnowMore(GetToKnowMore):
                 self._achievements.append(achievement)
                 self._focus = random.choice(list(self._goal))
 
-    def _pursui(self):
+    def _pursue(self):
         if not "count" in self._focus:
             self._focus["count"]=1
         else:
@@ -182,9 +192,9 @@ class GetToKnowMore(GetToKnowMore):
         response = self._brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
         print("response pushing statement", response["response"])
 
-    ## Main loop that 1) defines the task, pursuise the goal, waits for an effect and evaluates the results
+    ## Main loop that 1) defines the task, pursues the goal, waits for an effect and evaluates the results
     ## Evaluating results adapts the goal
-    ## pursui, wait, evaluate continues untill all goals are achieved or the attempts exceed the giveup threshold
+    ## pursue, wait, evaluate continues untill all goals are achieved or the attempts exceed the giveup threshold
     def _take_action(self, target, type)-> Optional[str]:
         logger.debug("Setting a goal for %s as a %s in state %s", target, type, self.state.conv_state.name)
         if self.state.conv_state == ConvState.START:
@@ -195,7 +205,7 @@ class GetToKnowMore(GetToKnowMore):
         self._evaluate()
 
         while not self._state==ConvState.REACHED and not self._state==ConvState.GIVEUP:
-            self._pursui()
+            self._pursue()
             self._wait()
             self._evaluate()
             self._goal_attempts +=1
@@ -225,7 +235,7 @@ if __name__ == "__main__":
 
     replier = LenkaReplier()
     g2km = GetToKnowMore(brain, replier)
-    ##### Settings for limits of goals to pursui and attempts
+    ##### Settings for limits of goals to pursue and attempts
     g2km._goal_attempts_max = 10  # threshold for total goal attempts
     g2km._focus_attempt_max = 3  # threshold for each specific subgoal
     #### Get thoughts about target

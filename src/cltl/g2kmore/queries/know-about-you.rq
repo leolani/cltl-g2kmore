@@ -1,0 +1,9 @@
+PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+select ?s ?p ?ol where { 
+	?s ?p ?o .
+    ?s rdfs:label "piek" .
+    ?o rdfs:label ?ol .
+    FILTER( STRSTARTS(str(?p), str(n2mu:)))
+} 
