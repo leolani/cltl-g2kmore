@@ -2,8 +2,8 @@ SHELL = /bin/bash
 
 project_dependencies ?= $(addprefix $(project_root)/, cltl-requirements \
     cltl-combot \
-    cltl-face-recognition \
-    cltl-mention-detection \
+    cltl-knowledgerepresentation \
+    cltl-languagegeneration \
     cltl-emissor-data \
     emissor)
 
