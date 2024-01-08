@@ -1,20 +1,17 @@
 import dataclasses
 import enum
 import logging
-import random
-import uuid
-from typing import Optional, Tuple, Iterable, Mapping
-from cltl.brain.long_term_memory import LongTermMemory
-from cltl.brain.infrastructure import StoreConnector, RdfBuilder
-from cltl.brain.basic_brain import BasicBrain
-from cltl.reply_generation.lenka_replier import LenkaReplier
-from cltl.g2kmore.api import GetToKnowMore
-import json
-from tqdm import tqdm
 import os
+import random
 from pathlib import Path
+from typing import Optional
+
+from cltl.brain.long_term_memory import LongTermMemory
 from cltl.brain.utils.helper_functions import brain_response_to_json
+from cltl.reply_generation.lenka_replier import LenkaReplier
+
 import thought_util as util
+from cltl.g2kmore.api import GetToKnowMore
 
 logger = logging.getLogger(__name__)
 
@@ -98,16 +95,16 @@ class GetToKnowMore(GetToKnowMore):
         response = self._brain._submit_query(util.know_about_target_subject(self._target))
         response += self._brain._submit_query(util.know_about_target_object(self._target))
 
-        print("This is what I know about %s: %s", self._target, response)
+        logger.debug("This is what I know about %s: %s", self._target, response)
         if self._state == ConvState.START:
             self._state = self.state.transition(ConvState.QUERY)
             return "Hi, nice to meet you! What is your name?"
         elif self._state == ConvState.REACHED:
-            print("ACHIEVEMENTS", self._achievements)
+            logger.debug("ACHIEVEMENTS", self._achievements)
             return "I am so happy"
         elif self._state == ConvState.GIVEUP:
-            print("ACHIEVEMENTS", self._achievements)
-            print("Attempts", self._goal_attempts)
+            logger.debug("ACHIEVEMENTS", self._achievements)
+            logger.debug("Attempts", self._goal_attempts)
             return "This is all I could do! Sorry."
         return None
 
@@ -119,12 +116,12 @@ class GetToKnowMore(GetToKnowMore):
         self._target_type = type
         goal = [brain_response_to_json(self._brain.capsule_mention(util.make_target(target, type), reason_types=True, return_thoughts=True, create_label=False))]
         self._goal = util.get_gaps_from_thought_response(goal)
-        print("Goal", len(self._goal), " gaps")
+        logger.debug("Goal", len(self._goal), " gaps")
         self._state=ConvState.START
 
     def _evaluate(self):
         if self._goal==[]:
-            print("No goals left.")
+            logger.debug("No goals left.")
             self._state=ConvState.REACHED
             return
         elif self._goal_attempts > self._goal_attempts_max:
@@ -134,23 +131,23 @@ class GetToKnowMore(GetToKnowMore):
             self._focus = random.choice(list(self._goal))
             self._goal_attempts += 1
         elif self._focus["count"] > self._focus_attempt_max:
-            print("Focus give up after attempts", self._focus["count"])
+            logger.debug("Focus give up after attempts", self._focus["count"])
             self._focus = random.choice(list(self._goal))
             self._goal_attempts += 1
-        print("Current focus is", util.triple_to_string(self._focus['triple']))
+        logger.debug("Current focus is", util.triple_to_string(self._focus['triple']))
         triple = self._focus["triple"]
         response = self._brain.query_brain(triple)
         if not response:
-            print('No response from eKG', triple)
+            logger.debug('No response from eKG', triple)
         else:
             if response["response"] == []:
                 #### No result, keep focus
-                print("No result for query. We keep the focus.")
+                logger.debug("No result for query. We keep the focus.")
             else:
                 #### if response good, move focus from goal to achievent with response
                 # set focus to None
-                print("We have a response", response["response"])
-                print("We can shift focus")
+                logger.debug("We have a response", response["response"])
+                logger.debug("We can shift focus")
                 self._goal = util.remove_gap_from_goal(self._focus, self._goal)
                 achievement = response["response"]
                 achievement.append(self._focus)
@@ -174,7 +171,7 @@ class GetToKnowMore(GetToKnowMore):
             if not reply:
                 reply = "NO REPLY GENERATED"
         # This is a text signal that needs to be posted to the event bus
-        print('Trying to get to know more', reply)
+        logger.debug('Trying to get to know more', reply)
         return reply
 
     def _wait(self):
@@ -187,10 +184,10 @@ class GetToKnowMore(GetToKnowMore):
         triple["predicate"]['uri'] = triple["predicate"]['uri'].replace(" ", "-")
         ### We fill in a dummy as object to simulate new data for the eKG
         triple['object']['label'] = 'dummy'
-        print('Triple as the fake user input', util.triple_to_string(triple))
+        logger.debug('Triple as the fake user input', util.triple_to_string(triple))
         capsule = util.make_capsule_from_triple(triple)
         response = self._brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
-        print("response pushing statement", response["response"])
+        logger.debug("response pushing statement", response["response"])
 
     ## Main loop that 1) defines the task, pursues the goal, waits for an effect and evaluates the results
     ## Evaluating results adapts the goal
@@ -211,12 +208,17 @@ class GetToKnowMore(GetToKnowMore):
             self._goal_attempts +=1
 
         say = self._response()
-        print (say)
+        logger.debug (say)
 
 
 if __name__ == "__main__":
-    # Create brain connection
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
 
+    # Create brain connection
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
@@ -227,11 +229,11 @@ if __name__ == "__main__":
     # testing the brain:
     # context = util.make_context()
     # response = brain.capsule_context(context)
-    # print("response pushing context", response)
+    # logger.debug("response pushing context", response)
     #
     # capsule = util.make_capsule_from_triple()
     # response = brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=False)
-    # print("response pushing statement", response)
+    # logger.debug("response pushing statement", response)
 
     replier = LenkaReplier()
     g2km = GetToKnowMore(brain, replier)
