@@ -65,14 +65,14 @@ class State:
         return self._transition(self.conv_state, **kwargs)
 
     def _transition(self, conv_state: ConvState, **kwargs):
-        new_state = vars(State(None, None, None)) if conv_state == ConvState.START else vars(self)
+        new_state = vars(State(None)) if conv_state == ConvState.START else vars(self)
         new_state.update(**kwargs)
         new_state["conv_state"] = conv_state
 
         return State(**new_state)
 
 
-class GetToKnowMore(GetToKnowMore):
+class BrainGetToKnowMore(GetToKnowMore):
     def __init__(self, brain, replier):
         self._target = None
         self._target_type = None
@@ -166,7 +166,7 @@ class GetToKnowMore(GetToKnowMore):
             # for gap in tqdm(new_goals):
             ## fix _subject and _complement choice
             thought = {"_subject_gaps": {"_subject": [self._focus["thought"]], "_complement": []}}
-            ask = {"response": [], "statement": self._focus["triple"], "thoughts": thought}
+            ask = {"response": [], "statement": {"triple": self._focus["triple"]}, "thoughts": thought}
             reply = self._replier.reply_to_statement(ask, thought_options=["_subject_gaps"])
             if not reply:
                 reply = "NO REPLY GENERATED"
@@ -192,7 +192,7 @@ class GetToKnowMore(GetToKnowMore):
     ## Main loop that 1) defines the task, pursues the goal, waits for an effect and evaluates the results
     ## Evaluating results adapts the goal
     ## pursue, wait, evaluate continues untill all goals are achieved or the attempts exceed the giveup threshold
-    def _take_action(self, target, type)-> Optional[str]:
+    def _take_action(self, target, type):
         logger.debug("Setting a goal for %s as a %s in state %s", target, type, self.state.conv_state.name)
         if self.state.conv_state == ConvState.START:
             response = "Tell me more!"
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     # logger.debug("response pushing statement", response)
 
     replier = LenkaReplier()
-    g2km = GetToKnowMore(brain, replier)
+    g2km = BrainGetToKnowMore(brain, replier)
     ##### Settings for limits of goals to pursue and attempts
     g2km._goal_attempts_max = 10  # threshold for total goal attempts
     g2km._focus_attempt_max = 3  # threshold for each specific subgoal
@@ -244,5 +244,3 @@ if __name__ == "__main__":
     target = "piek"
     type = "person"
     g2km._take_action(target, type)
-
-
