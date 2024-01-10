@@ -19,7 +19,7 @@ def fake_user_input(focus):
     triple["predicate"]['uri'] = triple["predicate"]['uri'].replace(" ", "-")
     ### We fill in a dummy as object to simulate new data for the eKG
     triple['object']['label'] = 'dummy'
-    print('Triple as the fake user input: ', util.triple_to_string(triple))
+    print('User: Triple as the fake user input: ', util.triple_to_string(triple))
 
     return util.make_capsule_from_triple(triple)
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     replier = LenkaReplier()
     g2km = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
-    target = "franziska"
+    target = "franziskaner"
     type = "person"
     brain_response = brain.capsule_mention(util.make_target(target, type),
                                            reason_types=True, return_thoughts=True, create_label=False)
@@ -63,14 +63,16 @@ if __name__ == "__main__":
     while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
         print('=======', g2km.state, '=======')
         thought = g2km.get_action()
+        print("Thought: ", thought)
+        print('')
+
         if not thought:
             pass
         elif isinstance(thought, str):
-            print("Reply: ", thought)
-            print('Some user input as reply to', thought)
+            print("Agent: ", thought)
+            print('User: Some user input as reply to', thought)
         else:
             # Reply is sometimes None as the replier randomly chooses between object and subject gaps
-            print("Thought: ", thought)
-            print("Reply: ", replier.reply_to_statement(thought, thought_options=["_subject_gaps"]))
+            print("Agent: ", replier.reply_to_statement(thought, thought_options=["_subject_gaps"]))
             capsule = fake_user_input(g2km.intention)
             g2km.add_knowledge(capsule)
