@@ -5,7 +5,7 @@ from pathlib import Path
 from cltl.brain.long_term_memory import LongTermMemory
 from cltl.reply_generation.lenka_replier import LenkaReplier
 
-import thought_util as util
+import cltl.g2kmore.thought_util as util
 from cltl.g2kmore.brain_g2kmore import BrainGetToKnowMore, ConvState
 
 logger = logging.getLogger(__name__)

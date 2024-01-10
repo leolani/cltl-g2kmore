@@ -1,4 +1,3 @@
-import dataclasses
 import enum
 import logging
 import random
@@ -6,7 +5,7 @@ from typing import Optional, Union
 
 from cltl.brain.utils.helper_functions import brain_response_to_json
 
-import thought_util as util
+import cltl.g2kmore.thought_util as util
 from cltl.g2kmore.api import GetToKnowMore, ConvState
 
 logger = logging.getLogger(__name__)
