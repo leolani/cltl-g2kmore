@@ -14,9 +14,6 @@ logger = logging.getLogger(__name__)
 def fake_user_input(focus):
     triple = focus["triple"]
 
-    ### for some reason hyphens are lost in de predicates, hack to repair this
-    triple["predicate"]['label'] = triple["predicate"]['label'].replace(" ", "-")
-    triple["predicate"]['uri'] = triple["predicate"]['uri'].replace(" ", "-")
     ### We fill in a dummy as object to simulate new data for the eKG
     triple['object']['label'] = 'dummy'
     print('User: Triple as the fake user input: ', util.triple_to_string(triple))
@@ -52,27 +49,25 @@ if __name__ == "__main__":
     replier = LenkaReplier()
     g2km = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
-    target = "franziskaner"
+    target = ("franticsek")
     type = "person"
-    brain_response = brain.capsule_mention(util.make_target(target, type),
-                                           reason_types=True, return_thoughts=True, create_label=False)
-
-    g2km.set_desires(brain_response)
+    g2km.set_target(target, type)
     print("Set a goal for %s as a %s in state %s" % (target, type, g2km.state.name))
 
     while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
         print('=======', g2km.state, '=======')
-        thought = g2km.get_action()
-        print("Thought: ", thought)
-        print('')
+        # Reply is sometimes None as the replier randomly chooses between object and subject gaps
+        response = g2km.evaluate_and_act()
 
-        if not thought:
+        if not response:
             pass
-        elif isinstance(thought, str):
-            print("Agent: ", thought)
-            print('User: Some user input as reply to', thought)
+        elif isinstance(response, str):
+            print("Agent: ", response)
+            print('User: Some user input as reply to', response)
         else:
-            # Reply is sometimes None as the replier randomly chooses between object and subject gaps
-            print("Agent: ", replier.reply_to_statement(thought, thought_options=["_subject_gaps"]))
+            print("Agent: ", replier.reply_to_statement(response, thought_options=["_subject_gaps"]))
+
+        # Wait for capsule event
+        if g2km.state in [ConvState.QUERY]:
             capsule = fake_user_input(g2km.intention)
-            g2km.add_knowledge(capsule)
+            brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)

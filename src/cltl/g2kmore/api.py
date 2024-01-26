@@ -36,7 +36,10 @@ class GetToKnowMore(abc.ABC):
         raise NotImplementedError()
 
     @desires.setter
-    def set_desires(self, thoughts: dict) -> None:
+    def desires(self, desires: dict) -> None:
+        raise NotImplementedError()
+
+    def set_target(self, target_label: str, target_type: str) -> None:
         raise NotImplementedError()
 
     @property
@@ -44,6 +47,9 @@ class GetToKnowMore(abc.ABC):
         raise NotImplementedError()
 
     def add_knowledge(self, capsule: dict):
+        raise NotImplementedError()
+
+    def evaluate_and_act(self) -> Optional[Union[dict, str]]:
         raise NotImplementedError()
 
     def get_action(self) -> Optional[Union[dict, str]]:

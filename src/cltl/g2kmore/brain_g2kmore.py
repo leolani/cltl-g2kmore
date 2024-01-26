@@ -1,6 +1,7 @@
 import enum
 import logging
 import random
+import copy
 from typing import Optional, Union
 
 from cltl.brain.utils.helper_functions import brain_response_to_json
@@ -43,12 +44,27 @@ class BrainGetToKnowMore(GetToKnowMore):
     def intention(self) -> dict:
         return self._focus
 
-    def set_desires(self, thoughts: dict) -> None:
-        self._goals = util.get_gaps_from_thought_response([brain_response_to_json(thoughts)])
+    @property
+    def desires(self) -> dict:
+        return self._focus
+
+    def set_target(self, target_label: str, target_type: str):
+        brain_response = self._brain.capsule_mention(util.make_target(target_label, target_type),
+                                               reason_types=True, return_thoughts=True, create_label=False)
+        self.desires = util.get_gaps_from_thought_response([brain_response_to_json(brain_response)])
+
+    @desires.setter
+    def desires(self, desires: dict) -> None:
+        self._goals = desires
         self._state = ConvState.START
-        logger.debug("Set %s goals", len(self._goals))
+        logger.debug("Set %s desires", len(self._goals))
 
         self._evaluate()
+
+    def evaluate_and_act(self) -> Optional[Union[dict, str]]:
+        self._evaluate()
+
+        return self.get_action()
 
     def add_knowledge(self, capsule: dict):
         self._brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
@@ -91,7 +107,7 @@ class BrainGetToKnowMore(GetToKnowMore):
             return None
 
         logger.debug("Current focus is %s", util.triple_to_string(self._focus['triple']))
-        triple = self._focus["triple"]
+        triple = copy.deepcopy(self._focus["triple"])
         response = self._brain.query_brain(triple)
         if not response or not response["response"]:
             logger.debug('No response from eKG for triple %s', triple)
@@ -125,7 +141,7 @@ class BrainGetToKnowMore(GetToKnowMore):
 
         logger.debug('Ask to get to know more: %s', ask)
 
-        return ask
+        return copy.deepcopy(ask)
 
     def _response(self) -> Optional[str]:
         # response = self._brain._submit_query(util.know_about_target_subject(self._target))

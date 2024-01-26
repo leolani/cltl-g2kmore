@@ -95,20 +95,20 @@ def remove_gap_from_goal(gap, goal):
     for g in goal:
         gap_string = triple_to_string(gap["triple"])
         g_string = triple_to_string(g["triple"])
-        if not gap_string==g_string:
+        if not gap_string == g_string:
             new_goal.append(g)
     return new_goal
 
 def triple_to_string(triple):
     say = "\t("
     if "subject" in triple:
-        say += triple["subject"]["label"]
+        say += str(triple["subject"]["label"])
     say += ", "
     if "predicate" in triple:
-        say += triple["predicate"]["label"]
+        say += str(triple["predicate"]["label"])
     say += ", "
     if "object" in triple:
-        say += triple["object"]["label"]
+        say += str(triple["object"]["label"])
     say += ")"
     return say
 
