@@ -1,6 +1,6 @@
 import abc
 import enum
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 
 class ConvState(enum.Enum):
@@ -32,18 +32,18 @@ class GetToKnowMore(abc.ABC):
         raise NotImplementedError()
 
     @property
-    def desires(self) -> dict:
+    def desires(self) -> List[dict]:
         raise NotImplementedError()
 
     @desires.setter
-    def desires(self, desires: dict) -> None:
-        raise NotImplementedError()
-
-    def set_target(self, target_label: str, target_type: str) -> None:
+    def desires(self, desires: List[dict]) -> None:
         raise NotImplementedError()
 
     @property
     def intention(self) -> dict:
+        raise NotImplementedError()
+
+    def set_target(self, target_label: str, target_type: str) -> None:
         raise NotImplementedError()
 
     def add_knowledge(self, capsule: dict):
