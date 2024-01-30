@@ -24,7 +24,8 @@ setup(
     python_requires='>=3.8',
     install_requires=[],
     extras_require={
-        "impl": ['cltl.brain', 'cltl.reply_generation'],
+        "example": ['cltl.brain', 'cltl.reply_generation'],
+        "impl": ['cltl.brain'],
         "service": [
             "emissor",
             "cltl.combot",
