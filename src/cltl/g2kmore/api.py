@@ -1,9 +1,10 @@
 import abc
 import enum
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 
 
 class ConvState(enum.Enum):
+    VOID = 0
     START = 1
     QUERY = 2
     CONFIRM = 3
@@ -16,10 +17,12 @@ class ConvState(enum.Enum):
     @property
     def _allowed(self):
         return {
+            ConvState.VOID: [ConvState.START],
             ConvState.START: [ConvState.QUERY],
             ConvState.QUERY: [ConvState.CONFIRM],
             ConvState.CONFIRM: [ConvState.REACHED, ConvState.QUERY],
-            ConvState.REACHED: [ConvState.START]
+            ConvState.REACHED: [ConvState.VOID, ConvState.START],
+            ConvState.GIVEUP: [ConvState.VOID, ConvState.START]
         }
 
 
@@ -41,6 +44,10 @@ class GetToKnowMore(abc.ABC):
 
     @property
     def intention(self) -> dict:
+        raise NotImplementedError()
+
+    @property
+    def target(self) -> Tuple[str, str]:
         raise NotImplementedError()
 
     def set_target(self, target_label: str, target_type: str) -> None:

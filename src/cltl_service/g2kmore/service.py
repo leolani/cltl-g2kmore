@@ -1,7 +1,7 @@
 import logging
 from typing import Union, List
 
-from cltl.combot.event.bdi import DesireEvent
+from cltl.combot.event.bdi import DesireEvent, IntentionEvent
 from cltl.combot.event.emissor import TextSignalEvent, AnnotationEvent
 from cltl.combot.infra.config import ConfigurationManager
 from cltl.combot.infra.event import Event, EventBus
@@ -60,12 +60,12 @@ class GetToKnowMoreService:
         self._last_response = None
 
     def start(self, timeout=30):
-        topics = [self._knowledge_topic]
+        topics = [self._knowledge_topic, self._intention_topic]
         self._topic_worker = TopicWorker(topics, self._event_bus,
                                          provides=[self._text_response_topic, self._thought_response_topic],
                                          resource_manager=self._resource_manager,
                                          intention_topic=self._intention_topic, intentions=self._intentions,
-                                         scheduled=5, buffer_size=16,
+                                         scheduled=30, buffer_size=16,
                                          processor=self._process, name=self.__class__.__name__)
         self._topic_worker.start().wait()
 
@@ -77,28 +77,28 @@ class GetToKnowMoreService:
         self._topic_worker.await_stop()
         self._topic_worker = None
 
-    def _process(self, event: Event[Union[TextSignalEvent, AnnotationEvent]]):
+    def _process(self, event: Event):
         response = None
         if event is None:
-            # TODO
-            response = "Are you still there?"
+            if self._g2kmore.state not in [ConvState.VOID, ConvState.REACHED, ConvState.GIVEUP]:
+                response = "I would like to know more about " + self._g2kmore.target[0]
         elif self._is_g2kmore_intention(event):
+            intention = next(intention for intention in event.payload.intentions if intention.label == "g2kmore")
+            self._g2kmore.set_target(*intention.args)
             response = self._g2kmore.evaluate_and_act()
-        elif (event.metadata.topic == self._knowledge_topic
-              and 'utterance_type' in event.payload
-              and event.payload['utterance_type'] == UtteranceType.STATEMENT):
+        elif (event.metadata.topic == self._knowledge_topic and
+              any('statement' in capsule
+                  and 'utterance_type' in capsule['statement']
+                  and capsule['statement']['utterance_type'] == UtteranceType.STATEMENT
+                  for capsule in event.payload)):
             response = self._g2kmore.evaluate_and_act()
-        elif (timestamp_now() - self._last_response) > 5_000:
-            # TODO
-            response = "Are you still there?"
 
         if isinstance(response, str):
             response_payload = self._create_text_payload(response)
             self._event_bus.publish(self._text_response_topic, Event.for_payload(response_payload))
-        if response:
+        elif response:
             self._last_response = timestamp_now()
-            response_payload = self._create_capsule_payload(response)
-            self._event_bus.publish(self._thought_response_topic, Event.for_payload(response_payload))
+            self._event_bus.publish(self._thought_response_topic, Event.for_payload([response]))
 
         if self._g2kmore.state in [ConvState.REACHED, ConvState.GIVEUP]:
             if self._desire_topic:
@@ -107,19 +107,13 @@ class GetToKnowMoreService:
             self._g2kmore.reset()
             self._topic_worker.clear()
 
-        if event:
-            logger.debug("Found %s, %s, response: %s", id, name, response)
-
     def _is_g2kmore_intention(self, event):
         return (event.metadata.topic == self._intention_topic
                 and hasattr(event.payload, "intentions")
-                and 'g2kmore' in event.payload.intentions)
+                and any('g2kmore' == intention.label for intention in event.payload.intentions))
 
     def _create_text_payload(self, response):
         scenario_id = self._emissor_client.get_current_scenario_id()
         signal = TextSignal.for_scenario(scenario_id, timestamp_now(), timestamp_now(), None, response)
 
         return TextSignalEvent.for_agent(signal)
-
-    def _create_capsule_payload(self, response):
-        return self._event_bus.publish(self._thought_response_topic, Event.for_payload(response))

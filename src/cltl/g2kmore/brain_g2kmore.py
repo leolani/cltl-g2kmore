@@ -25,7 +25,7 @@ class BrainGetToKnowMore(GetToKnowMore):
     def __init__(self, brain, max_attempts=10, max_intention_attempts=3):
         self._target = None
         self._target_type = None
-        self._state = ConvState.START
+        self._state = ConvState.VOID
         self._desires = None
         self._achievements = []
         self._intention = None
@@ -56,10 +56,20 @@ class BrainGetToKnowMore(GetToKnowMore):
 
         self._evaluate()
 
+    @property
+    def target(self):
+        return (self._target, self._target_type)
+
     def set_target(self, target_label: str, target_type: str):
+        self._target = target_label
+        self._target_type = target_type
+
         brain_response = self._brain.capsule_mention(util.make_target(target_label, target_type),
                                                reason_types=True, return_thoughts=True, create_label=False)
         self.desires = util.get_gaps_from_thought_response([brain_response_to_json(brain_response)])
+
+        self._state = ConvState.START
+        logger.debug("Set target to %s[%s], set %s desires (%s)", self._target, self._target_type, len(self.desires), self._state)
 
     def evaluate_and_act(self) -> Optional[Union[dict, str]]:
         self._evaluate()
@@ -71,7 +81,8 @@ class BrainGetToKnowMore(GetToKnowMore):
         self._evaluate()
 
     def _evaluate(self):
-        if self._state == ConvState.START:
+        if self._state in [ConvState.VOID, ConvState.START]:
+            logger.debug("In initial state %s", self._state)
             return
 
         if not self._desires:
@@ -85,19 +96,20 @@ class BrainGetToKnowMore(GetToKnowMore):
 
         if not self._intention:
             self._intention = random.choice(list(self._desires))
+            logger.debug("Set intention %s", self._intention['triple'])
         elif self._intention["count"] > self._intention_attempt_max:
-            logger.debug("intention give up after attempts %s", self._intention["count"])
             self._intention = random.choice(list(self._desires))
+            logger.debug("intention give up after attempts %s, new intention %s", self._intention["count"], self._intention['triple'])
 
         while achievement := self._evaluate_intention():
-            logger.debug("We have a response: %s", achievement)
-            logger.debug("We can shift intention")
             achievement.append(self._intention)
             self._achievements.append(achievement)
 
             self._desires = util.remove_gap_from_goal(self._intention, self._desires)
+            logger.debug("Intention %s resolved", self._intention["triple"])
             if self._desires:
                 self._intention = random.choice(list(self._desires))
+                logger.debug("We shifted intention to %s", self._intention["triple"])
             else:
                 self._state = ConvState.REACHED
                 return
@@ -114,11 +126,17 @@ class BrainGetToKnowMore(GetToKnowMore):
             logger.debug("No result for query. We keep the intention.")
             return None
         else:
+            logger.debug("We have a response: %s", response["response"])
+
             return response["response"]
 
     def get_action(self) -> Optional[Union[dict, str]]:
         self._evaluate()
 
+        logger.debug("Act in state %s with intention %s", self._state, self._intention['triple'] if self._intention else None)
+
+        if self._state == ConvState.VOID:
+            return None
         if self._state in [ConvState.START, ConvState.REACHED, ConvState.GIVEUP]:
             return self._response()
         else:
@@ -136,10 +154,26 @@ class BrainGetToKnowMore(GetToKnowMore):
         while not ask and trying < 10:
             trying += 1
             # fix _subject and _complement choice
-            thought = {"_subject_gaps": {"_subject": [self._intention["thought"]], "_complement": []}}
-            ask = {"response": [], "statement": {"triple": self._intention["triple"]}, "thoughts": thought}
+            thoughts = {
+                "_statement_novelty": [],
+                "_entity_novelty": [],
+                "_negation_conflicts": [],
+                "_complement_conflict": [],
+                "_subject_gaps": {
+                    "_subject": [self._intention["thought"]],
+                    "_complement": []
+                },
+                "_complement_gaps": [],
+                "_overlaps": [],
+                "_trust": 0.5
+            }
+            ask = {
+                "response": [],
+                "statement": util.make_capsule_from_triple(self._intention["triple"]),
+                "thoughts": thoughts
+            }
 
-        logger.debug('Ask to get to know more: %s', ask)
+        logger.debug('Ask to get to know more (%s): %s', trying, ask)
 
         return copy.deepcopy(ask)
 
@@ -150,12 +184,15 @@ class BrainGetToKnowMore(GetToKnowMore):
         # logger.debug("This is what I know about %s: %s", self._target, response)
         if self._state == ConvState.START:
             self._state = ConvState.QUERY
-            return "Hi, nice to meet you! What is your name?"
+            return "I would like to know more about " + self._target
         elif self._state == ConvState.REACHED:
             logger.debug("ACHIEVEMENTS (%s attempts): %s ", self._goal_attempts, self._achievements)
             return "I am so happy"
         elif self._state == ConvState.GIVEUP:
             logger.debug("ACHIEVEMENTS (%s attempts): %s ", self._goal_attempts, self._achievements)
             return "This is all I could do! Sorry."
+        else:
+            raise ValueError("Illegal state " + self._state)
 
-        return None
+    def reset(self):
+        self.__init__(self._brain, self._goal_attempts_max, self._intention_attempt_max)

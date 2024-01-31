@@ -18,18 +18,22 @@ def make_context():
 
 def make_target(target, type):
     mention = {
-                        "chat": 1,
-                        "turn": 1,
-                        "author": {"label": "dummy", "type": ["person"],
-                                   'uri': "http://cltl.nl/leolani/friends/dummy"},
-                        "utterance": "",
-                        "utterance_type": UtteranceType.TEXT_MENTION,
-                        "position": "",
-                        "item": {'label': target, 'type': [type],
-                                 'uri': ""},
-                        "timestamp": datetime.now(),
-                        "context_id": 1
-                }
+        "chat": 1,
+        "turn": 1,
+        "author": {"label": "dummy",
+                   "type": ["person"],
+                   'uri': "http://cltl.nl/leolani/friends/dummy"},
+        "utterance": "",
+        "utterance_type": UtteranceType.TEXT_MENTION,
+        "position": "",
+        "item": {'id': None,
+                 'label': target,
+                 'type': [type],
+                 'uri': ""},
+        "timestamp": datetime.now(),
+        "context_id": 1
+    }
+
     return mention
 
 #
@@ -64,6 +68,7 @@ def make_capsule_from_triple(triple):
                "subject": triple['subject'],
                "predicate": triple['predicate'],
                "object": triple['object'],
+               "triple": triple,
                ###
                "context_id": 1,
                "timestamp": datetime.now()
