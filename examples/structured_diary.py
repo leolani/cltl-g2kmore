@@ -150,7 +150,7 @@ if __name__ == "__main__":
     #ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df) #hue='label',
     sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
 
-    ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df,  style='label', palette="deep", sizes=(20, 200), legend="full")
+    ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df,  size="certainty", style='label', palette="deep", sizes=(20, 200), legend="full")
 
     # Add labels at the peak points
     #for category in df['label'].unique():
@@ -172,13 +172,15 @@ if __name__ == "__main__":
         elif polarity>0.5:
             realis="re"
         if not category=="None":
-            ax.text(x, y, s=" "+str(category)+str(actors)+"\n   "+str(emotion.name)+"_"+realis, horizontalalignment='left', size='small', color='black', verticalalignment='bottom', linespacing=2)
+            ax.text(x, y, s=" "+str(category)+str(actors)+"\n   "+str(emotion.name).lower()+"_"+realis, horizontalalignment='left', size='xx-small', color='black', verticalalignment='bottom', linespacing=1)
 
 
     ax.tick_params(axis='x', rotation=70)
     # Show the plot
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
     plt.show()
+
     path = target+".png"
-    plt.savefig(path, dpi=300, transparent=True)
+   # plt.savefig(path, dpi=300, transparent=True)
+    plt.savefig(path)
 
