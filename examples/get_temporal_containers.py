@@ -1,4 +1,4 @@
-import cltl.haydo.thought_util as util
+import cltl.g2kmore.thought_util as util
 from datetime import datetime
 from cltl.brain.long_term_memory import LongTermMemory
 from random import choice
@@ -7,7 +7,7 @@ from enum import Enum, auto
 certainties = [0, 0.2, 0.5, 0.7, 1]
 #sentiments = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 sentiments = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-polarities = [0, 0.5, 1]
+polarities = [0, 0.5, 1, 1, 1, 1]
 
 class GoNegEmotion(Enum):
     FEAR = auto()

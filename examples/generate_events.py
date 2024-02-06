@@ -1,4 +1,3 @@
-import json
 import random
 from datetime import date, datetime, timedelta
 from random import choice

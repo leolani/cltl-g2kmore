@@ -9,17 +9,12 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import get_temporal_containers as query
-import matplotlib.ticker as ticker
-import random
 from cltl.brain.long_term_memory import LongTermMemory
 from cltl.reply_generation.lenka_replier import LenkaReplier
-from cltl.mention_extraction.api import ImagePerspective, TextPerspective, Perspective, Source, \
-    TextMention, ImageMention, Entity
-from cltl.emotion_extraction.emotion_mappings import EmotionType, GoEmotion, EkmanEmotion, EmoticEmotion, Sentiment
 
 
-import cltl.haydo.thought_util as util
-from cltl.haydo.brain_haydo import BrainGetToKnowMore, ConvState
+import cltl.g2kmore.thought_util as util
+from cltl.g2kmore.brain_g2kmore import BrainGetToKnowMore, ConvState
 logger = logging.getLogger(__name__)
 
 n2mu = "http://cltl.nl/leolani/n2mu/"
@@ -155,7 +150,7 @@ if __name__ == "__main__":
     #ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df) #hue='label',
     sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
 
-    ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df,  style='label')
+    ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df,  style='label', palette="deep", sizes=(20, 200), legend="full")
 
     # Add labels at the peak points
     #for category in df['label'].unique():
@@ -182,7 +177,8 @@ if __name__ == "__main__":
 
     ax.tick_params(axis='x', rotation=70)
     # Show the plot
-    #plt.show()
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plt.show()
     path = target+".png"
     plt.savefig(path, dpi=300, transparent=True)
 
