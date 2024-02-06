@@ -1,0 +1,48 @@
+[
+ {
+    "time": [2023, 12, 23],
+    "location": "http://cltl.nl/leolani/n2mu/chidos",
+    "activity_label": "lunch",
+    "activity_type": "icf",
+    "actor1": "piek",
+    "actor2": "fred",
+    "author": "piek",
+    "author_uri": "http://cltl.nl/leolani/n2mu/piek",
+    "perspective": {"certainty": 0.5,
+         			"sentiment": 0.4,
+         			"polarity": 1
+                   }
+  },
+ {
+    "time": [2024, 2, 2],
+    "location": "http://cltl.nl/leolani/n2mu/labas",
+    "activity_label": "dinner",
+    "activity_type": "icf",
+    "actor1": "piek",
+    "actor2": "fabian",
+    "actor3": "wine",
+    "author": "piek",
+    "author_uri": "http://cltl.nl/leolani/n2mupiek",
+    "perspective": {"certainty": 0.5,
+         			"sentiment": 0.3,
+         			"polarity": 0.5
+                   }
+  },
+ {
+      "time": [2024, 2, 24],
+      "location": "http://cltl.nl/leolani/n2mu/chidos",
+      "activity_label": "breakfast",
+      "activity_type": "icf",
+      "actor1": "piek",
+      "actor2": "john",
+      "actor3": "beer",
+      "author": "piek",
+      "author_uri": "http://cltl.nl/leolani/n2mu/piek",
+      "perspective": {
+        "certainty": 0.8,
+        "sentiment": 0.8,
+        "polarity": 0.7
+      }
+ }
+
+]
