@@ -1,59 +1,37 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from generate_events import create_a_life
 import logging
 import os
 from pathlib import Path
-import seaborn as sns
 import enum
 import json
-import pandas as pd
-import matplotlib.pyplot as plt
 import get_temporal_containers as query
 from cltl.brain.long_term_memory import LongTermMemory
 from cltl.reply_generation.lenka_replier import LenkaReplier
-
-
 import cltl.g2kmore.thought_util as util
 from cltl.g2kmore.brain_g2kmore import BrainGetToKnowMore, ConvState
+import visualise_timeline
+
 logger = logging.getLogger(__name__)
 
 n2mu = "http://cltl.nl/leolani/n2mu/"
 
+#TODO integrate this with the way perspectives are store in the eKG
 class Factuality(enum.Enum):
     REALIS = 1 # polarity: 1.0
     IRREALIS = 2 # polarity: 0.5
     DENIED = 3 # polarity: 0.0
 
-def get_temporal_container (activities, curent_date):
-    earliest_day = current_date
-    latest_day = current_date
-    for activity in activities:
-        if activity['time']<earliest_day:
-            earliest_day = activity['time']
-        elif activity['time']>latest_day:
-            latest_day=activity['time']
-    period = pd.date_range(earliest_day.date(), latest_day.date())
-    print(period)
-    activity_in_period = []
-    for date in period:
-        activity_on_date = {'id':"", 'label':"None",  "time": date, "perspective": 0}
-
-        for activity in activities:
-            if activity['time']==date:
-                activity_on_date = activity
-        activity_in_period.append(activity_on_date)
-    return earliest_day, latest_day, period, activity_in_period
-
 def add_activity_to_ekg(brain: LongTermMemory, current_date, activities):
     #### We need to create a context for adding data to the eKG
     context = util.make_context()
     response = brain.capsule_context(context)
-    print("response pushing context", response)
+    #print("response pushing context", response)
     chat = str(current_date.timestamp())
     turn = "_1"
 
     for activity in activities:
-        print(activity)
+       # print(activity)
         #### We add an activity
         if type(activity['time'])==datetime:
             event_date =activity['time']
@@ -81,8 +59,6 @@ def add_activity_to_ekg(brain: LongTermMemory, current_date, activities):
 
         perspective = None
         if 'pespective' in activity:
-            #emotion = GoEmotion.DISAPPOINTMENT  ### we want to replace the numeric value with a categorical value
-            #factuality = Factuality.REALIS  ### we want to replace the numeric value with a categorical value
             perspective= activity['perspective']
 
         util.add_activity_to_ekg(chat, turn, brain, activity_label, activity_uri, activity_type,
@@ -107,11 +83,12 @@ if __name__ == "__main__":
     brain = LongTermMemory(address="http://localhost:7200/repositories/demo",
                            log_dir=Path(log_path), clear_all=False)
 
-    replier = LenkaReplier()
-    haydo = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
+    #TODO G2KMORE loop still needs to be implemented to ask for events or event properties
+    ## We need to set the goal following the pseudocode for high leve beliefs, and middle and low level intents
+    #replier = LenkaReplier()
+    #g2kmore = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
     target = "carl"
-
     current_date = datetime.today()
 
     if loaddata:
@@ -128,9 +105,7 @@ if __name__ == "__main__":
         add_activity_to_ekg(brain, current_date, life)
 
     recent_date = query.get_last_conversation_date(target, brain, current_date)
-    print(recent_date)
     history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
-
 
     print('History before', recent_date, len(history), " activities")
     print("\t", history)
@@ -141,46 +116,6 @@ if __name__ == "__main__":
     print('Unknown date', len(unknown), ' activities')
     print("\t", unknown)
 
-    story_of_life = history+gap+future
-    earliest, latest, period, activity_in_period  = get_temporal_container(story_of_life, curent_date=current_date)
-    df = pd.DataFrame(activity_in_period, index=period)
-
- #   ax = sns.catplot(x='time', y='sentiment', kind='swarm', hue='label', data=df)
- #   ax = sns.swarmplot(x='time', y='sentiment', hue='label', data=df)
-    #ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df) #hue='label',
-    sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
-
-    ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df,  size="certainty", style='label', palette="deep", sizes=(20, 200), legend="full")
-
-    # Add labels at the peak points
-    #for category in df['label'].unique():
-    #    max_point = df[df['label'] == category]['label'].max()
-    #    max_date = df[(df['label'] == category) & (df['perspective'] == max_point)]['time'].values[0]
-    #     if not category=="None":
-    #         ax.text(df['time'], max_point, f'{max_point}', ha='left', va='bottom',
-    #                color=ax.get_lines()[df['label'].unique().tolist().index(category)].get_c())
-    for index in df.index:
-        x = df['time'][index]
-        y = df['sentiment'][index]
-        category = df['label'][index]
-        actors = df['actors'][index]
-        polarity = df['polarity'][index]
-        emotion = df['emotion'][index]
-        realis = "ir"
-        if polarity<0.5:
-            realis="de"
-        elif polarity>0.5:
-            realis="re"
-        if not category=="None":
-            ax.text(x, y, s=" "+str(category)+str(actors)+"\n   "+str(emotion.name).lower()+"_"+realis, horizontalalignment='left', size='xx-small', color='black', verticalalignment='bottom', linespacing=1)
-
-
-    ax.tick_params(axis='x', rotation=70)
-    # Show the plot
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
-    plt.show()
-
-    path = target+".png"
-   # plt.savefig(path, dpi=300, transparent=True)
-    plt.savefig(path)
+    story_of_life = history + gap + future
+    visualise_timeline.create_timeline_image(story_of_life, target, current_date)
 
