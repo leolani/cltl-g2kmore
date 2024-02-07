@@ -124,7 +124,7 @@ if __name__ == "__main__":
     gap_period = pd.date_range(recent_date.date(), current_date.date())
 
     g2km.set_target_events_for_period(target, event_type, gap_period)
-    print("Set a goal for %s as a %s in state %s" % (target, type, g2km.state.name))
+    print("Set a goal for %s as a %s in state %s" % (target, event_type, g2km.state.name))
 
     while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
         print('=======', g2km.state, '=======')
@@ -139,6 +139,7 @@ if __name__ == "__main__":
         else:
             print("Agent: ", replier.reply_to_statement(response, thought_options=["_subject_gaps"]))
 
+        print('intention', g2km._intention)
         # Wait for capsule event
         if g2km.state in [ConvState.QUERY]:
             event_date = g2km._intention["triple"]["object"]
