@@ -13,7 +13,6 @@ def get_temporal_container(activities:[], current_date: datetime):
         elif activity['time']>latest_day:
             latest_day=activity['time']
     period = pd.date_range(earliest_day.date(), latest_day.date())
-    print(period)
     activity_in_period = []
     for date in period:
         activity_on_date = {'id':"", 'label':"None",  "time": date, "perspective": 0}

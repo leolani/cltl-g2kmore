@@ -1,7 +1,8 @@
 from datetime import datetime
-from generate_events import create_a_life
+from generate_events import create_a_life, create_an_event
 import logging
 import os
+import pandas as pd
 from pathlib import Path
 import enum
 import json
@@ -85,9 +86,10 @@ if __name__ == "__main__":
 
     #TODO G2KMORE loop still needs to be implemented to ask for events or event properties
     ## We need to set the goal following the pseudocode for high leve beliefs, and middle and low level intents
-    #replier = LenkaReplier()
-    #g2kmore = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
+    replier = LenkaReplier()
+    g2km = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
+    event_type="icf"
     target = "carl"
     current_date = datetime.today()
 
@@ -119,3 +121,26 @@ if __name__ == "__main__":
     story_of_life = history + gap + future
     visualise_timeline.create_timeline_image(story_of_life, target, current_date)
 
+    gap_period = pd.date_range(recent_date.date(), current_date.date())
+
+    g2km.set_target_events_for_period(target, event_type, gap_period)
+    print("Set a goal for %s as a %s in state %s" % (target, type, g2km.state.name))
+
+    while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
+        print('=======', g2km.state, '=======')
+        # Reply is sometimes None as the replier randomly chooses between object and subject gaps
+        response = g2km.evaluate_and_act()
+
+        if not response:
+            pass
+        elif isinstance(response, str):
+            print("Agent: ", response)
+            print('User: Some user input as reply to', response)
+        else:
+            print("Agent: ", replier.reply_to_statement(response, thought_options=["_subject_gaps"]))
+
+        # Wait for capsule event
+        if g2km.state in [ConvState.QUERY]:
+            event_date = g2km._intention["triple"]["object"]
+            event = create_an_event(target, event_date)
+            add_activity_to_ekg(brain, current_date, [event])
