@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from generate_events import create_a_life, create_an_event
 import logging
 import os
@@ -16,6 +16,8 @@ import visualise_timeline
 logger = logging.getLogger(__name__)
 
 n2mu = "http://cltl.nl/leolani/n2mu/"
+sem = "http://semanticweb.cs.vu.nl/2009/11/sem/"
+leolaniworld = "http://cltl.nl/leolani/world/"
 
 #TODO integrate this with the way perspectives are store in the eKG
 class Factuality(enum.Enum):
@@ -25,7 +27,7 @@ class Factuality(enum.Enum):
 
 def add_activity_to_ekg(brain: LongTermMemory, current_date, activities):
     #### We need to create a context for adding data to the eKG
-    context = util.make_context()
+    context = util.make_context(current_date)
     response = brain.capsule_context(context)
     #print("response pushing context", response)
     chat = str(current_date.timestamp())
@@ -36,6 +38,12 @@ def add_activity_to_ekg(brain: LongTermMemory, current_date, activities):
         #### We add an activity
         if type(activity['time'])==datetime:
             event_date =activity['time']
+        elif type(activity['time'])==dict:
+            items = activity['time']['label'].split('-')
+            year = int(items[0])
+            month =int(items[1])
+            day = int(items[2].split(" ")[0])
+            event_date = datetime(year, month, day)
         else:
             year = activity['time'][0]
             month = activity['time'][1]
@@ -72,6 +80,7 @@ def add_activity_to_ekg(brain: LongTermMemory, current_date, activities):
 if __name__ == "__main__":
     loaddata = False
     generatedata = False
+    density_theshold = 4.0
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
@@ -92,6 +101,8 @@ if __name__ == "__main__":
     event_type="icf"
     target = "carl"
     current_date = datetime.today()
+    #### We can simulate another day as now!
+    current_date = datetime(2024, 2, 20)
 
     if loaddata:
         ##### Adding activity to the eKG
@@ -121,27 +132,66 @@ if __name__ == "__main__":
     story_of_life = history + gap + future
     visualise_timeline.create_timeline_image(story_of_life, target, current_date)
 
+    ### The next code checks the density of events in the GAP period
+    ### Density is average number of event per day for the GAP period
+    ### If the density is equal or above the density threshold
+    ###     We have enough acitvities registered
+    ### Otherwise, we set a target goal for each day in the GAP period to ask for an event on that day
+    ### This code then generates a new event as a response, which should be done by a dialog in the real system
+
+    ### We first extract the list of dates that make up the GAP period
     gap_period = pd.date_range(recent_date.date(), current_date.date())
+    print('The gap is', gap)
 
-    g2km.set_target_events_for_period(target, event_type, gap_period)
-    print("Set a goal for %s as a %s in state %s" % (target, event_type, g2km.state.name))
+    ### For each event in the GAP, we need to check the realis, the saturation and the perspective
+    for activity in gap:
+        print(activity)
+        #### get the saturation and missing properties
+        #### ask for the properties
+        #### get the missing perspectives
+        #### ask for the perspective
 
-    while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
-        print('=======', g2km.state, '=======')
-        # Reply is sometimes None as the replier randomly chooses between object and subject gaps
-        response = g2km.evaluate_and_act()
 
-        if not response:
-            pass
-        elif isinstance(response, str):
-            print("Agent: ", response)
-            print('User: Some user input as reply to', response)
-        else:
-            print("Agent: ", replier.reply_to_statement(response, thought_options=["_subject_gaps"]))
+    ### Here comes a for loop over the GAP events to ask for realis, saturation and perspective
 
-        print('intention', g2km._intention)
-        # Wait for capsule event
-        if g2km.state in [ConvState.QUERY]:
-            event_date = g2km._intention["triple"]["object"]
-            event = create_an_event(target, event_date)
-            add_activity_to_ekg(brain, current_date, [event])
+    ### As far as we have not reached the density, we will add new events to the GAP
+    density = len(gap)/len(gap_period)
+    print('The current density is', density, len(gap), len(gap_period))
+    if (density>=density_theshold):
+        print('I know enough')
+    else:
+        print('I will ask you some questions')
+        g2km.set_target_events_for_period(target, event_type, gap_period)
+        print("Set a goal for %s as a %s in state %s" % (target, event_type, g2km.state.name))
+        print('Desires', g2km.desires)
+
+        while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
+            print('Intention', g2km._intention)
+            print('=======', g2km.state, '=======')
+            # Reply is sometimes None as the replier randomly chooses between object and subject gaps
+            response = g2km.evaluate_and_act()
+
+            if not response:
+                pass
+            elif isinstance(response, str):
+                print("Agent: ", response)
+                print('User: Some user input as reply to', response)
+            else:
+                print("Agent: ", replier.reply_to_statement(response, thought_options=["_subject_gaps"]))
+
+            print('intention', g2km._intention)
+            # Wait for capsule event
+            if g2km.state in [ConvState.QUERY]:
+                event_date = g2km._intention["triple"]["object"]
+                event = create_an_event(target, event_date)
+                add_activity_to_ekg(brain, current_date, [event])
+
+    ### For the FUTURE, we need to check if there are activities planned
+
+    ### We first extract the list of dates that make up the FUTURE period
+    FUTURE_PERIOD = 7
+    future_period = pd.date_range(current_date.date(),current_date.date()+ FUTURE_PERIOD)
+    print('The future is', future_period)
+    for date in future:
+        print(date)
+ 

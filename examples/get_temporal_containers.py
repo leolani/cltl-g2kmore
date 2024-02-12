@@ -129,10 +129,8 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
         emotion = GoEmotion.NEUTRAL
         if sentiment<-0.2:
             emotion = GoNegEmotion.random()
-            print('neg', sentiment, emotion)
         elif sentiment>0.2:
             emotion = GoPosEmotion.random()
-            print(('pos', sentiment, emotion))
         ## END OF HACK
 
         ## Get the perspectives from the brain when it works
