@@ -103,7 +103,7 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
         activity_label= activity["label"]["value"]
 
         #### Get SEM relations
-        query = util.get_sem_relations(activity_id)
+        query = util.get_sem_relation_query(activity_id)
         sem_response = brain._submit_query(query)
         for sem in sem_response:
             if 'actor_id' in sem:
