@@ -1,0 +1,153 @@
+@prefix eps: <http://cltl.nl/episodicawareness/> .
+@prefix gaf: <http://groundedannotationframework.org/gaf#> .
+@prefix grasp: <http://groundedannotationframework.org/grasp#> .
+@prefix graspe: <http://groundedannotationframework.org/grasp/emotion#> .
+@prefix graspf: <http://groundedannotationframework.org/grasp/factuality#> .
+@prefix grasps: <http://groundedannotationframework.org/grasp/sentiment#> .
+@prefix leolaniContext: <http://cltl.nl/leolani/context/> .
+@prefix leolaniFriends: <http://cltl.nl/leolani/friends/> .
+@prefix leolaniTalk: <http://cltl.nl/leolani/talk/> .
+@prefix leolaniWorld: <http://cltl.nl/leolani/world/> .
+@prefix n2mu: <http://cltl.nl/leolani/n2mu/> .
+@prefix ns1: <urn:x-rdflib:> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sem: <http://semanticweb.cs.vu.nl/2009/11/sem/> .
+@prefix time1: <http://www.w3.org/TR/owl-time/#> .
+@prefix xml1: <https://www.w3.org/TR/xmlschema-2/#> .
+
+leolaniTalk:Interactions {
+    leolaniContext:context12 a eps:Context ;
+        rdfs:label "context12" ;
+        n2mu:id "12"^^xml1:string ;
+        sem:hasBeginTimeStamp leolaniContext:2017-10-24 ;
+        sem:hasEvent leolaniTalk:chat2 ;
+        sem:hasPlace leolaniContext:piek-s-office .
+
+    leolaniContext:2017-10-24 a sem:Time,
+            time1:DateTimeDescription ;
+        rdfs:label "2017-10-24" ;
+        time1:day "24"^^xml1:gDay ;
+        time1:month "10"^^xml1:gMonthDay ;
+        time1:unitType time1:unitDay ;
+        time1:year "2017"^^xml1:gYear .
+
+    leolaniContext:piek-s-office a n2mu:location,
+            sem:Place ;
+        rdfs:label "piek-s-office" ;
+        n2mu:id "0"^^xml1:string ;
+        n2mu:in leolaniWorld:Amsterdam,
+            leolaniWorld:Netherlands,
+            leolaniWorld:North_Holland .
+
+    leolaniFriends:selene-1 a n2mu:person,
+            gaf:Instance,
+            grasp:Source,
+            sem:Actor ;
+        rdfs:label "selene" .
+
+    leolaniTalk:chat2 a grasp:Chat,
+            sem:Event ;
+        rdfs:label "chat2" ;
+        n2mu:id "2"^^xml1:string ;
+        sem:hasSubEvent leolaniTalk:chat2_utterance1 .
+
+    leolaniTalk:chat2_utterance1 a grasp:Utterance,
+            sem:Event ;
+        rdfs:label "chat2_utterance1" ;
+        n2mu:id "1"^^xml1:string ;
+        sem:hasActor leolaniFriends:selene-1 .
+
+    leolaniWorld:Amsterdam a n2mu:city,
+            n2mu:location,
+            sem:Place ;
+        rdfs:label "Amsterdam" .
+
+    leolaniWorld:Netherlands a n2mu:country,
+            n2mu:location,
+            sem:Place ;
+        rdfs:label "Netherlands" .
+
+    leolaniWorld:North_Holland a n2mu:location,
+            n2mu:region,
+            sem:Place ;
+        rdfs:label "North Holland" .
+}
+
+leolaniWorld:leolani_know_selene-1 {
+    leolaniWorld:leolani n2mu:know leolaniFriends:selene-1 .
+}
+
+leolaniWorld:Instances {
+    leolaniWorld:leolani a n2mu:robot ;
+        rdfs:label "leolani" .
+
+    leolaniWorld:piek a n2mu:person,
+            gaf:Instance ;
+        gaf:denotedIn leolaniTalk:chat2_utterance1_char0-25 .
+
+    leolaniWorld:selene a n2mu:person,
+            gaf:Instance .
+
+    leolaniWorld:serbia a n2mu:location,
+            gaf:Instance ;
+        gaf:denotedIn leolaniTalk:chat2_utterance1_char0-25 .
+}
+
+leolaniWorld:piek_be-from_serbia {
+    leolaniWorld:piek n2mu:be-from leolaniWorld:serbia .
+}
+
+leolaniWorld:Claims {
+    leolaniFriends:selene-1 owl:sameAs leolaniWorld:selene .
+
+    leolaniWorld:leolani_know_selene-1 a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "leolani_know_selene-1" .
+
+    leolaniWorld:piek_be-from_serbia a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "piek_be-from_serbia" ;
+        gaf:denotedBy leolaniTalk:chat2_utterance1_char0-25 .
+}
+
+leolaniTalk:Perspectives {
+    leolaniTalk:chat2_utterance1_char0-25 a gaf:Mention,
+            grasp:Statement ;
+        rdfs:label "chat2_utterance1_char0-25" ;
+        gaf:containsDenotation leolaniWorld:piek,
+            leolaniWorld:serbia ;
+        gaf:denotes leolaniWorld:piek_be-from_serbia ;
+        grasp:hasAttribution leolaniTalk:piek_be-from_serbia_2100 ;
+        grasp:wasAttributedTo leolaniFriends:selene-1 ;
+        sem:hasBeginTimeStamp "2017-10-24 11:02:51.179011"^^xml1:string ;
+        rdf:value "I think Lenka is from Serbia"^^xml1:string ;
+        prov:wasDerivedFrom leolaniTalk:chat2_utterance1 .
+
+    leolaniTalk:piek_be-from_serbia_2100 a grasp:Attribution ;
+        rdfs:label "piek_be-from_serbia_2100" ;
+        grasp:isAttributionFor leolaniTalk:chat2_utterance1_char0-25 ;
+        rdf:value graspe:UNDERSPECIFIED,
+            graspf:POSITIVE,
+            graspf:PROBABLE,
+            grasps:UNDERSPECIFIED .
+
+    graspe:UNDERSPECIFIED a grasp:AttributionValue,
+            graspe:EmotionValue ;
+        rdfs:label "UNDERSPECIFIED" .
+
+    graspf:POSITIVE a grasp:AttributionValue,
+            graspf:PolarityValue ;
+        rdfs:label "POSITIVE" .
+
+    graspf:PROBABLE a grasp:AttributionValue,
+            graspf:CertaintyValue ;
+        rdfs:label "PROBABLE" .
+
+    grasps:UNDERSPECIFIED a grasp:AttributionValue,
+            grasps:SentimentValue ;
+        rdfs:label "UNDERSPECIFIED" .
+}
+

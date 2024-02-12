@@ -11,6 +11,10 @@ from cltl.g2kmore.api import GetToKnowMore, ConvState
 
 logger = logging.getLogger(__name__)
 
+n2mu = "http://cltl.nl/leolani/n2mu/"
+sem = "http://semanticweb.cs.vu.nl/2009/11/sem/"
+leolaniworld = "http://cltl.nl/leolani/world/"
+
 
 class TripleStatus(enum.Enum):
     SUBJECTMATCH = 1
@@ -63,13 +67,21 @@ class BrainGetToKnowMore(GetToKnowMore):
     def set_target(self, target_label: str, target_type: str):
         self._target = target_label
         self._target_type = target_type
-
         brain_response = self._brain.capsule_mention(util.make_target(target_label, target_type),
                                                reason_types=True, return_thoughts=True, create_label=False)
         self.desires = util.get_gaps_from_thought_response([brain_response_to_json(brain_response)])
+        self._state = ConvState.START
+        logger.debug("Set target to %s[%s], set %s desires (%s)", self._target, self._target_type, len(self.desires), self._state)
+
+    def set_target_events_for_period(self, target_label: str, target_type: str, period:[]):
+        self._target = target_label
+        self._target_type = target_type
+
+        self.desires = util.get_event_gaps_for_period(period)
 
         self._state = ConvState.START
         logger.debug("Set target to %s[%s], set %s desires (%s)", self._target, self._target_type, len(self.desires), self._state)
+
 
     def evaluate_and_act(self) -> Optional[Union[dict, str]]:
         self._evaluate()
@@ -121,6 +133,27 @@ class BrainGetToKnowMore(GetToKnowMore):
         logger.debug("Current intention is %s", util.triple_to_string(self._intention['triple']))
         triple = copy.deepcopy(self._intention["triple"])
         response = self._brain.query_brain(triple)
+        if not response or not response["response"]:
+            logger.debug('No response from eKG for triple %s', triple)
+            logger.debug("No result for query. We keep the intention.")
+            return None
+        else:
+            logger.debug("We have a response: %s", response["response"])
+
+            return response["response"]
+
+    def _evaluate_event_intention(self):
+        if not self._intention:
+            return None
+
+        logger.debug("Current intention is %s", util.triple_to_string(self._intention['triple']))
+        triple = copy.deepcopy(self._intention["triple"])
+        query = util.make_event_query_for_date(self, triple)
+        # Perform query
+        response = self._submit_query(query)
+        # Create JSON output
+        response = {'response': response, 'question': triple, 'rdf_log_path': None}
+
         if not response or not response["response"]:
             logger.debug('No response from eKG for triple %s', triple)
             logger.debug("No result for query. We keep the intention.")

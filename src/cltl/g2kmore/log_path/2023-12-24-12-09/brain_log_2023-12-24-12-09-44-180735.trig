@@ -1,0 +1,174 @@
+@prefix gaf: <http://groundedannotationframework.org/gaf#> .
+@prefix grasp: <http://groundedannotationframework.org/grasp#> .
+@prefix graspe: <http://groundedannotationframework.org/grasp/emotion#> .
+@prefix graspf: <http://groundedannotationframework.org/grasp/factuality#> .
+@prefix grasps: <http://groundedannotationframework.org/grasp/sentiment#> .
+@prefix leolaniContext: <http://cltl.nl/leolani/context/> .
+@prefix leolaniFriends: <http://cltl.nl/leolani/friends/> .
+@prefix leolaniTalk: <http://cltl.nl/leolani/talk/> .
+@prefix leolaniWorld: <http://cltl.nl/leolani/world/> .
+@prefix n2mu: <http://cltl.nl/leolani/n2mu/> .
+@prefix ns1: <urn:x-rdflib:> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sem: <http://semanticweb.cs.vu.nl/2009/11/sem/> .
+@prefix xml1: <https://www.w3.org/TR/xmlschema-2/#> .
+
+leolaniTalk:Perspectives {
+    leolaniTalk:UNKNOWN_0100 a grasp:Attribution ;
+        rdfs:label "UNKNOWN_0100" ;
+        grasp:isAttributionFor leolaniTalk:chat1_utterance1_char ;
+        rdf:value graspe:UNDERSPECIFIED,
+            graspf:POSITIVE,
+            graspf:UNDERSPECIFIED,
+            grasps:UNDERSPECIFIED .
+
+    leolaniTalk:piek_be-friends-with__0000 a grasp:Attribution ;
+        rdfs:label "piek_be-friends-with__0000" ;
+        grasp:isAttributionFor leolaniTalk:chat1_utterance1_char ;
+        rdf:value graspe:UNDERSPECIFIED,
+            graspf:UNDERSPECIFIED,
+            grasps:UNDERSPECIFIED .
+
+    leolaniTalk:piek_be-sibling-of__0000 a grasp:Attribution ;
+        rdfs:label "piek_be-sibling-of__0000" ;
+        grasp:isAttributionFor leolaniTalk:chat1_utterance1_char ;
+        rdf:value graspe:UNDERSPECIFIED,
+            graspf:UNDERSPECIFIED,
+            grasps:UNDERSPECIFIED .
+
+    leolaniTalk:piek_have-meal__0000 a grasp:Attribution ;
+        rdfs:label "piek_have-meal__0000" ;
+        grasp:isAttributionFor leolaniTalk:chat1_utterance1_char ;
+        rdf:value graspe:UNDERSPECIFIED,
+            graspf:UNDERSPECIFIED,
+            grasps:UNDERSPECIFIED .
+
+    graspf:POSITIVE a grasp:AttributionValue,
+            graspf:PolarityValue ;
+        rdfs:label "POSITIVE" .
+
+    leolaniTalk:chat1_utterance1_char a gaf:Mention,
+            grasp:Statement ;
+        rdfs:label "chat1_utterance1_char" ;
+        gaf:containsDenotation n2mu:,
+            leolaniWorld:piek ;
+        gaf:denotes leolaniWorld:piek_be-friends-with_,
+            leolaniWorld:piek_be-sibling-of_,
+            leolaniWorld:piek_have-meal_ ;
+        grasp:hasAttribution leolaniTalk:UNKNOWN_0100,
+            leolaniTalk:piek_be-friends-with__0000,
+            leolaniTalk:piek_be-sibling-of__0000,
+            leolaniTalk:piek_have-meal__0000 ;
+        grasp:wasAttributedTo leolaniFriends:dummy ;
+        sem:hasBeginTimeStamp "2023-12-24 12:09:41.194947"^^xml1:string,
+            "2023-12-24 12:09:41.388584"^^xml1:string,
+            "2023-12-24 12:09:41.715326"^^xml1:string,
+            "2023-12-24 12:09:42.299980"^^xml1:string,
+            "2023-12-24 12:09:42.563382"^^xml1:string,
+            "2023-12-24 12:09:43.148686"^^xml1:string,
+            "2023-12-24 12:09:43.451491"^^xml1:string,
+            "2023-12-24 12:09:43.791768"^^xml1:string,
+            "2023-12-24 12:09:44.112897"^^xml1:string ;
+        rdf:value ""^^xml1:string ;
+        prov:wasDerivedFrom leolaniTalk:chat1_utterance1 .
+
+    graspe:UNDERSPECIFIED a grasp:AttributionValue,
+            graspe:EmotionValue ;
+        rdfs:label "UNDERSPECIFIED" .
+
+    graspf:UNDERSPECIFIED a grasp:AttributionValue,
+            graspf:CertaintyValue,
+            graspf:PolarityValue ;
+        rdfs:label "UNDERSPECIFIED" .
+
+    grasps:UNDERSPECIFIED a grasp:AttributionValue,
+            grasps:SentimentValue ;
+        rdfs:label "UNDERSPECIFIED" .
+}
+
+leolaniWorld:piek_have-meal_ {
+    leolaniWorld:piek n2mu:have-meal n2mu: .
+}
+
+leolaniWorld:piek_be-sibling-of_ {
+    leolaniWorld:piek n2mu:be-sibling-of n2mu: .
+}
+
+leolaniWorld:Claims {
+    leolaniFriends:dummy owl:sameAs leolaniWorld:dummy .
+
+    leolaniWorld:leolani_know_dummy a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "leolani_know_dummy" .
+
+    leolaniWorld:piek_be-friends-with_ a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "piek_be-friends-with_" ;
+        gaf:denotedBy leolaniTalk:chat1_utterance1_char .
+
+    leolaniWorld:piek_be-sibling-of_ a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "piek_be-sibling-of_" ;
+        gaf:denotedBy leolaniTalk:chat1_utterance1_char .
+
+    leolaniWorld:piek_have-meal_ a gaf:Assertion,
+            sem:Event ;
+        rdfs:label "piek_have-meal_" ;
+        gaf:denotedBy leolaniTalk:chat1_utterance1_char .
+}
+
+leolaniWorld:Instances {
+    n2mu: a n2mu:agent,
+            n2mu:drink,
+            n2mu:person,
+            gaf:Instance ;
+        rdfs:label "dummy" ;
+        gaf:denotedIn leolaniTalk:chat1_utterance1_char .
+
+    leolaniWorld:dummy a n2mu:person,
+            gaf:Instance ;
+        rdfs:label "dummy" .
+
+    leolaniWorld:leolani a n2mu:robot ;
+        rdfs:label "leolani" .
+
+    leolaniWorld:piek a n2mu:instance,
+            n2mu:person,
+            gaf:Instance ;
+        rdfs:label "piek" ;
+        gaf:denotedIn leolaniTalk:chat1_utterance1_char .
+}
+
+leolaniTalk:Interactions {
+    leolaniContext:context1 sem:hasEvent leolaniTalk:chat1 .
+
+    leolaniFriends:dummy a n2mu:person,
+            gaf:Instance,
+            grasp:Source,
+            sem:Actor ;
+        rdfs:label "dummy" .
+
+    leolaniTalk:chat1 a grasp:Chat,
+            sem:Event ;
+        rdfs:label "chat1" ;
+        n2mu:id "1"^^xml1:string ;
+        sem:hasSubEvent leolaniTalk:chat1_utterance1 .
+
+    leolaniTalk:chat1_utterance1 a grasp:Utterance,
+            sem:Event ;
+        rdfs:label "chat1_utterance1" ;
+        n2mu:id "1"^^xml1:string ;
+        sem:hasActor leolaniFriends:dummy .
+}
+
+leolaniWorld:leolani_know_dummy {
+    leolaniWorld:leolani n2mu:know leolaniFriends:dummy .
+}
+
+leolaniWorld:piek_be-friends-with_ {
+    leolaniWorld:piek n2mu:be-friends-with n2mu: .
+}
+
