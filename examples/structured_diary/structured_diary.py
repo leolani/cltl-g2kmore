@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime
 from generate_events import create_a_life, create_an_event
 import logging
 import os
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     if loaddata:
         ##### Adding activity to the eKG
-        activities_file = "data/activities-2.json"
+        activities_file = "../data/activities-2.json"
         activities = json.load(open(activities_file))
         #add_activity_to_ekg(haydo._brain, current_date, activities)
         util.add_activity_to_ekg(brain, current_date, activities)
