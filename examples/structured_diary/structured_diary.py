@@ -52,6 +52,7 @@ if __name__ == "__main__":
     current_date = datetime.today()
     #### We can simulate another day as now!
     current_date = datetime(2024, 2, 20)
+    FUTURE_PERIOD = datetime(2024, 2, 29)
 
     if loaddata:
         ##### Adding activity to the eKG
@@ -96,15 +97,17 @@ if __name__ == "__main__":
     for activity in gap:
         print(activity)
         #### getting more properties
-        event_properties = util.get_sem_relation_query(activity['event_id'])
+        event_properties = util.get_sem_relation_query(activity['id'])
         if len(event_properties)>= saturation_threshold:
-            print('I know enough')
+            print('I know enough', len(event_properties), 'saturation_threshold', saturation_threshold)
         else:
             #### ask for the properties
             print("Please tell me more about", activity["label"])
-        perspectives = util.get_perspective_query("even_id")
+        perspectives = util.get_perspective_query("id")
         if not perspectives:
             print("Please tell me how was", activity["label"])
+        else:
+            print('Your perspective is', perspectives)
 
         #### get the missing perspectives
         #### ask for the perspective
@@ -147,8 +150,10 @@ if __name__ == "__main__":
     ### For the FUTURE, we need to check if there are activities planned
 
     ### We first extract the list of dates that make up the FUTURE period
-    FUTURE_PERIOD = 7
-    future_period = pd.date_range(current_date.date(),current_date.date()+ FUTURE_PERIOD)
+    future_period = pd.date_range(current_date.date(), FUTURE_PERIOD.date())
     print('The future is', future_period)
-    for date in future:
-        print(date)
+    for date in future_period:
+        print('Future date', date)
+        for activity in future:
+            if activity['time']==date:
+                print('\tPlanned:', activity)

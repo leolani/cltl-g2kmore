@@ -463,7 +463,7 @@ def get_all_utterances(target):
     return query
 
 
-def get_all_instances(type):
+def get_all_instances_query(type):
     query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
             select ?id ?label where {\
@@ -472,7 +472,7 @@ def get_all_instances(type):
                 }"
     return query
 
-def get_sem_relations(event_id):
+def get_sem_relation_query(event_id):
         query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
                 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
                 PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/>\
@@ -485,7 +485,7 @@ def get_sem_relations(event_id):
             } "
         return query
 
-def get_perspectives(event_id):
+def get_perspective_query(event_id):
     query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
             PREFIX grasp: <http://groundedannotationframework.org/grasp#>\
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\

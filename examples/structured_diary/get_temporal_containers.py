@@ -89,7 +89,7 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
     unknown = []
     future = []
     activity_tpe = "n2mu:icf"
-    query = util.get_all_instances(activity_tpe)
+    query = util.get_all_instances_query(activity_tpe)
     #print(query)
     brain_response = brain._submit_query(query)
     print('I found', len(brain_response), 'activities')
