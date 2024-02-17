@@ -67,6 +67,7 @@ if __name__ == "__main__":
         life = create_a_life(human=target, start=start, end=end, leap=leap, nr=2)
         util.add_activity_to_ekg(brain, current_date, life)
 
+
     recent_date = query.get_last_conversation_date(target, brain, current_date)
     history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
 
