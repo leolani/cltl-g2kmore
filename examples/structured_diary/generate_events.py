@@ -28,8 +28,8 @@ def create_an_event(human:str, event_date:datetime):
     certainty = random.randint(0, Certainty.__len__()-1)
     sentiment = random.randint(0, Sentiment.__len__()-1)
     polarity = random.randint(0, Polarity.__len__()-1)
-   # emotion = random.randint(0, GoEmotion.__len__()-1)
-    emotion = random.randint(0, Emotion.__len__()-1)
+    emotion = random.randint(0, GoEmotion.__len__()-1)
+    #emotion = random.randint(0, Emotion.__len__()-1)
 
     event_data = {
         "time": event_date,
@@ -97,7 +97,7 @@ if __name__ == "__main__":
         event_perspectives = [] #### To be fixed when properly stored in the eKG
 
         # Get the perspectives from the brain when it works
-        query = util.get_perspectives(activity_id)
+        query = util.get_perspective_query(activity_id)
         #print('perspective query', query)
         perspective_response = brain._submit_query(query)
         for p in perspective_response:

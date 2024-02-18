@@ -159,7 +159,6 @@ def add_activity_to_ekg(chat, turn, longterm_memory, activity_label, activity_id
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if perspective:
         capsule = make_activity_capsule_for_perspective(chat, turn, activity_label, activity_id, activity_type, author, author_uri, perspective)
-        print(capsule)
         longterm_memory.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
 
 def make_activity_capsule(chat, turn, activity, activity_id, activity_type, author, author_uri):
@@ -522,7 +521,7 @@ def get_all_instances_query(type):
     query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
             select ?id ?label where {\
-                ?id rdf:type " + type + ". \
+                ?id rdf:type " + "n2mu:"+type + ". \
                 ?id rdfs:label ?label . \
                 }"
     return query
