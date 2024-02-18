@@ -521,7 +521,7 @@ def get_all_instances_query(type):
     query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
             select ?id ?label where {\
-                ?id rdf:type " + "n2mu:"+type + ". \
+                ?id rdf:type " +type + ". \
                 ?id rdfs:label ?label . \
                 }"
     return query

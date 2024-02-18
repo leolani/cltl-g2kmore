@@ -27,7 +27,7 @@ leolaniworld = "http://cltl.nl/leolani/world/"
 
 if __name__ == "__main__":
     loaddata = False
-    generatedata = True
+    generatedata = False
     density_threshold = 4.0
     saturation_threshold = 3.0
     logging.basicConfig(
@@ -81,7 +81,8 @@ if __name__ == "__main__":
     print("\t", unknown)
 
     story_of_life = history + gap + future
-    visualise_timeline.create_timeline_image(story_of_life, target, current_date)
+    if len(story_of_life)>0:
+        visualise_timeline.create_timeline_image(story_of_life, target, current_date)
 
     ### The next code checks the density of events in the GAP period
     ### Density is average number of event per day for the GAP period
@@ -146,7 +147,7 @@ if __name__ == "__main__":
             if g2km.state in [ConvState.QUERY]:
                 event_date = g2km._intention["triple"]["object"]
                 event = create_an_event(target, event_date)
-                util.add_activity_to_ekg(brain, current_date, [event])
+                util.add_activities_to_ekg(brain, current_date, [event])
 
     ### For the FUTURE, we need to check if there are activities planned
 

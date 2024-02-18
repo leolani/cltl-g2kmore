@@ -25,17 +25,17 @@ def create_an_event(human:str, event_date:datetime):
     # polarity = choice(polarities)
     # emotion= choice(emotions)
 
-    certainty = random.randint(0, Certainty.__len__()-1)
-    sentiment = random.randint(0, Sentiment.__len__()-1)
-    polarity = random.randint(0, Polarity.__len__()-1)
-    emotion = random.randint(0, GoEmotion.__len__()-1)
-    #emotion = random.randint(0, Emotion.__len__()-1)
+    certainty = random.randint(1, Certainty.__len__()-1)
+    sentiment = random.randint(1, Sentiment.__len__()-1)
+    polarity = random.randint(1, Polarity.__len__()-1)
+    emotion = random.randint(1, GoEmotion.__len__()-1)
+    #emotion = random.randint(1, Emotion.__len__()-1)
 
     event_data = {
         "time": event_date,
         "location": location,
         "activity_label": activity,
-        "activity_type": "icf",
+        "activity_type": "n2mu:icf",
         "actor1": human,
         "actor2": friend,
         "author": human,
