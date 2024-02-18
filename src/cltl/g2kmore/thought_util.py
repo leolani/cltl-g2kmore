@@ -3,6 +3,7 @@ from cltl.commons.discrete import UtteranceType
 from random import getrandbits
 
 from cltl.commons.discrete import UtteranceType
+from cltl.brain.long_term_memory import LongTermMemory
 
 context_id, place_id, start_date = getrandbits(8), getrandbits(8), date.today() #(2017, 10, 24)
 
@@ -82,6 +83,60 @@ def make_capsule_from_triple(triple):
                "timestamp": datetime.now()
                }
     return capsule
+
+def add_activities_to_ekg(brain: LongTermMemory, current_date, activities):
+    #### We need to create a context for adding data to the eKG
+    context = make_context(current_date)
+    response = brain.capsule_context(context)
+    # print("response pushing context", response)
+    chat = str(current_date.timestamp())
+    turn = "_1"
+
+    for activity in activities:
+        # print(activity)
+        #### We add an activity
+        if type(activity['time']) == datetime:
+            event_date = activity['time']
+        elif type(activity['time']) == dict:
+            items = activity['time']['label'].split('-')
+            year = int(items[0])
+            month = int(items[1])
+            day = int(items[2].split(" ")[0])
+            event_date = datetime(year, month, day)
+        else:
+            year = activity['time'][0]
+            month = activity['time'][1]
+            day = activity['time'][2]
+            event_date = datetime(year, month, day)
+        location = activity['location']
+        activity_label = activity['activity_label']
+        activity_uri = n2mu + activity['activity_label'] + "_" + str(event_date.timestamp())
+        activity_type = activity['activity_type']
+        author = activity['author']
+        author_uri = n2mu + author
+
+        actor1 = None
+        actor2 = None
+        actor3 = None
+        if 'actor1' in activity:
+            actor1 = activity['actor1']
+        if 'actor2' in activity:
+            actor2 = activity['actor2']
+        if 'actor3' in activity:
+            actor3 = activity['actor3']
+
+        perspective = None
+        if 'perspective' in activity:
+            perspective = activity['perspective']
+
+        add_activity_to_ekg(chat, turn, brain, activity_label, activity_uri, activity_type,
+                                 actor1=actor1, actor2=actor2, actor3=actor3,
+                                 location=location,
+                                 time=event_date,
+                                 author=author,
+                                 author_uri=author_uri,
+                                 perspective=perspective)
+
 
 def add_activity_to_ekg(chat, turn, longterm_memory, activity_label, activity_id, activity_type, actor1=None, actor2=None, actor3=None, location=None, time=None,
                         author=None, author_uri=None, perspective=None):

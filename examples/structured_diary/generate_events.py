@@ -68,6 +68,7 @@ if __name__ == "__main__":
     life = create_a_life(human = "carl", start=start, leap=2, end=end, nr=2)
     print(life)
     activity = life[0]
+
     capsule = util.make_activity_capsule_for_perspective(1, 1,
                                                          activity['activity_label'],
                                                          "",
@@ -84,3 +85,25 @@ if __name__ == "__main__":
                            log_dir=Path(log_path), clear_all=False)
 
     brain.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
+
+
+    query = util.get_all_instances_query("icf")
+    brain_response = brain._submit_query(query)
+    print('I found', len(brain_response), 'activities')
+    #print(brain_response)
+    for activity in brain_response:
+        activity_id = activity["id"]["value"]
+        activity_label= activity["label"]["value"]
+        event_perspectives = [] #### To be fixed when properly stored in the eKG
+
+        # Get the perspectives from the brain when it works
+        query = util.get_perspectives(activity_id)
+        #print('perspective query', query)
+        perspective_response = brain._submit_query(query)
+        for p in perspective_response:
+            perspective = p['perspective_value']['value']
+            perspective = perspective[perspective.rindex("#")+1:]
+            if not perspective=="UNDERSPECIFIED":
+                print(p)
+                event_perspectives.append(perspective)
+        print(event_perspectives)

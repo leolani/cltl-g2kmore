@@ -154,7 +154,7 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
         # if not event_perspectives:
         #     print("Tell me how was", activity_label)
 
-        ## Creatng the data structure for each activity
+        ## Creating the data structure for each activity
         activity_result = {'id':activity_id, 'label':activity_label, "actors":event_actors, "location":event_location, "time": event_date,
                            #"perspective": len(event_perspectives)
                            'emotion': emotion,

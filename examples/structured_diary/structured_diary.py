@@ -18,16 +18,16 @@ logger = logging.getLogger(__name__)
 n2mu = "http://cltl.nl/leolani/n2mu/"
 sem = "http://semanticweb.cs.vu.nl/2009/11/sem/"
 leolaniworld = "http://cltl.nl/leolani/world/"
-
-#TODO integrate this with the way perspectives are store in the eKG
-class Factuality(enum.Enum):
-    REALIS = 1 # polarity: 1.0
-    IRREALIS = 2 # polarity: 0.5
-    DENIED = 3 # polarity: 0.0
+#
+# #TODO integrate this with the way perspectives are store in the eKG
+# class Factuality(enum.Enum):
+#     REALIS = 1 # polarity: 1.0
+#     IRREALIS = 2 # polarity: 0.5
+#     DENIED = 3 # polarity: 0.0
 
 if __name__ == "__main__":
     loaddata = False
-    generatedata = False
+    generatedata = True
     density_threshold = 4.0
     saturation_threshold = 3.0
     logging.basicConfig(
@@ -58,14 +58,14 @@ if __name__ == "__main__":
         ##### Adding activity to the eKG
         activities_file = "../data/activities-2.json"
         activities = json.load(open(activities_file))
-        #add_activity_to_ekg(haydo._brain, current_date, activities)
-        util.add_activity_to_ekg(brain, current_date, activities)
+        util.add_activities_to_ekg(brain, current_date, activities)
     elif generatedata:
         end = datetime(2024, 3, 4)
         start = datetime(2023, 12, 28)
         leap = 6
         life = create_a_life(human=target, start=start, end=end, leap=leap, nr=2)
-        util.add_activity_to_ekg(brain, current_date, life)
+        util.add_activities_to_ekg(brain, current_date, life)
+
 
 
     recent_date = query.get_last_conversation_date(target, brain, current_date)
