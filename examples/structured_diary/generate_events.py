@@ -63,7 +63,6 @@ def create_an_event(human:str, event_date:datetime, activity_type):
     activity = choice(activities)
     friend = choice(friends)
     i = choice(range(6,20)) ### pick a random hour
-    print('The hour is', i)
     updated_time = event_date + timedelta(hours=i)
     certainty = choice(list(Certainty))
        # random.randint(1, Certainty.__len__()-1)

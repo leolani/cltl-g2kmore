@@ -25,7 +25,7 @@ leolaniworld = "http://cltl.nl/leolani/world/"
 
 if __name__ == "__main__":
     loaddata = False
-    generatedata = False
+    generatedata = True
     density_threshold = 1.0
     saturation_threshold = 1.0
 
@@ -142,9 +142,7 @@ if __name__ == "__main__":
             # Wait for capsule event
             if g2km.state in [ConvState.QUERY]:
                 object = g2km._intention["triple"]["object"]
-                print(object['label'])
                 event_date = datetime.strptime(object['label'], '%Y-%m-%d %H:%M:%S')
-                print('Target event_date', event_date)
                 event = create_an_event(target, event_date, activity_type=activity_type)
                 util.add_activities_to_ekg(brain, current_date, [event])
 
