@@ -89,8 +89,8 @@ def add_activities_to_ekg(brain: LongTermMemory, current_date, activities):
     context = make_context(current_date)
     response = brain.capsule_context(context)
     # print("response pushing context", response)
-    chat = str(current_date.timestamp())
-    turn = "_1"
+    chat = str(datetime.now())
+    turn = str(current_date.timestamp())
 
     for activity in activities:
         # print(activity)
@@ -140,57 +140,42 @@ def add_activities_to_ekg(brain: LongTermMemory, current_date, activities):
 
 def add_activity_to_ekg(chat, turn, longterm_memory, activity_label, activity_id, activity_type, actor1=None, actor2=None, actor3=None, location=None, time=None,
                         author=None, author_uri=None, perspective=None):
-    capsule = make_activity_capsule(chat, turn, activity_label, activity_id, activity_type, author, author_uri)
+
+    capsule = make_activity_capsule(chat, turn, activity_label, activity_id, activity_type, author, author_uri, perspective)
     longterm_memory.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if actor1:
-        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor1)
+        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor1, perspective)
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if actor2:
-        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor2)
+        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor2, perspective)
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if actor3:
-        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor3)
+        capsule = make_activity_capsule_with_actor(chat, turn, activity_label, activity_id, activity_type, author, author_uri, actor3, perspective)
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if location:
-        capsule = make_activity_capsule_for_location(chat, turn, activity_label, activity_id, activity_type, author, author_uri, location)
+        capsule = make_activity_capsule_for_location(chat, turn, activity_label, activity_id, activity_type, author, author_uri, location, perspective)
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
     if time:
-        capsule = make_activity_capsule_for_time(chat, turn, activity_label, activity_id, activity_type, author, author_uri, time)
+        capsule = make_activity_capsule_for_time(chat, turn, activity_label, activity_id, activity_type, author, author_uri, time, perspective)
         longterm_memory.capsule_statement(capsule, reason_types=False, return_thoughts=False, create_label=True)
+
+
+def make_activity_capsule(chat, turn, activity, activity_id, activity_type, author, author_uri, perspective=None):
+    capsule = {"chat": chat,
+               "turn": turn,
+               "author": {"label": author, "type": ["person"], 'uri': author_uri},
+               "utterance": "",
+               "utterance_type": UtteranceType.TEXT_MENTION,
+               "position": "0-25",
+               "item": {'label': activity, 'type': [activity_type], 'id': activity_id, 'uri': activity_id},
+               "timestamp": datetime.combine(start_date, datetime.now().time()),
+               "context_id": context_id
+               }
     if perspective:
-        capsule = make_activity_capsule_for_perspective(chat, turn, activity_label, activity_id, activity_type, author, author_uri, perspective)
-        longterm_memory.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
-
-def make_activity_capsule(chat, turn, activity, activity_id, activity_type, author, author_uri):
-    capsule = {"chat": chat,
-               "turn": turn,
-               "author": {"label": author, "type": ["person"], 'uri': author_uri},
-
-               "utterance": "",
-               "utterance_type": UtteranceType.TEXT_MENTION,
-               "position": "0-25",
-               "item": {'label': activity, 'type': [activity_type], 'id': activity_id, 'uri': activity_id},
-               "timestamp": datetime.combine(start_date, datetime.now().time()),
-               "context_id": context_id
-               }
+        capsule['perspective']=perspective
     return capsule
 
-def make_activity_capsule_for_perspective(chat, turn, activity, activity_id, activity_type, author, author_uri, perspective):
-    capsule = {"chat": chat,
-               "turn": turn,
-               "author": {"label": author, "type": ["person"], 'uri': author_uri},
-
-               "utterance": "",
-               "utterance_type": UtteranceType.TEXT_MENTION,
-               "position": "0-25",
-               "item": {'label': activity, 'type': [activity_type], 'id': activity_id, 'uri': activity_id},
-               "perspective": perspective,
-               "timestamp": datetime.combine(start_date, datetime.now().time()),
-               "context_id": context_id
-               }
-    return capsule
-
-def make_activity_capsule_with_actor(chat, turn, activity, activity_id, activity_type, author, author_uri, actor):
+def make_activity_capsule_with_actor(chat, turn, activity, activity_id, activity_type, author, author_uri, actor, perspective=None):
     capsule = {"chat": chat,
                "turn": turn,
                "author": {"label": author, "type": ["person"], 'uri': author_uri},
@@ -204,9 +189,11 @@ def make_activity_capsule_with_actor(chat, turn, activity, activity_id, activity
                "timestamp": datetime.combine(start_date, datetime.now().time()),
                "context_id": context_id
                }
+    if perspective:
+        capsule['perspective']=perspective
     return capsule
 
-def make_activity_capsule_for_time(chat, turn, activity, activity_id, activity_type, author, author_uri, date):
+def make_activity_capsule_for_time(chat, turn, activity, activity_id, activity_type, author, author_uri, date, perspective=None):
     capsule = {"chat": chat,
                "turn": turn,
                "author": {"label": author, "type": ["person"], 'uri': author_uri},
@@ -220,9 +207,11 @@ def make_activity_capsule_for_time(chat, turn, activity, activity_id, activity_t
                "timestamp": datetime.combine(start_date, datetime.now().time()),
                "context_id": context_id
                }
+    if perspective:
+        capsule['perspective']=perspective
     return capsule
 
-def make_activity_capsule_for_location(chat, turn, activity, activity_id, activity_type, author, author_uri, location):
+def make_activity_capsule_for_location(chat, turn, activity, activity_id, activity_type, author, author_uri, location, perspective=None):
     capsule = {"chat": chat,
                "turn": turn,
                "author": {"label": author, "type": ["person"], 'uri': author_uri},
@@ -236,6 +225,8 @@ def make_activity_capsule_for_location(chat, turn, activity, activity_id, activi
                "timestamp": datetime.combine(start_date, datetime.now().time()),
                "context_id": context_id
                }
+    if perspective:
+        capsule['perspective']=perspective
     return capsule
 
 def make_test_capsule_from_triple():

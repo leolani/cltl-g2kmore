@@ -4,14 +4,12 @@ import logging
 import os
 import pandas as pd
 from pathlib import Path
-import enum
 import json
 import get_temporal_containers as query
 from cltl.brain.long_term_memory import LongTermMemory
 from cltl.reply_generation.lenka_replier import LenkaReplier
 import cltl.g2kmore.thought_util as util
 from cltl.g2kmore.brain_g2kmore import BrainGetToKnowMore, ConvState
-import visualise_timeline
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +26,18 @@ leolaniworld = "http://cltl.nl/leolani/world/"
 if __name__ == "__main__":
     loaddata = False
     generatedata = False
-    density_threshold = 4.0
-    saturation_threshold = 3.0
+    density_threshold = 1.0
+    saturation_threshold = 1.0
+
+    activity_type="icf"
+    target = "carl"
+    current_date = datetime.today()
+    #### We can simulate another day as now!
+    current_date = datetime(2024, 2, 15)
+    PREVIOUS_DATE = datetime(2024,2, 9)
+    FUTURE_PERIOD = datetime(2024, 2, 29)
+
+
     logging.basicConfig(
         level=logging.DEBUG,
         format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
@@ -47,12 +55,6 @@ if __name__ == "__main__":
     replier = LenkaReplier()
     g2km = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
-    event_type="icf"
-    target = "carl"
-    current_date = datetime.today()
-    #### We can simulate another day as now!
-    current_date = datetime(2024, 2, 20)
-    FUTURE_PERIOD = datetime(2024, 2, 29)
 
     if loaddata:
         ##### Adding activity to the eKG
@@ -60,15 +62,13 @@ if __name__ == "__main__":
         activities = json.load(open(activities_file))
         util.add_activities_to_ekg(brain, current_date, activities)
     elif generatedata:
-        end = datetime(2024, 3, 4)
-        start = datetime(2023, 12, 28)
-        leap = 6
-        life = create_a_life(human=target, start=start, end=end, leap=leap, nr=2)
+        end = datetime(2024, 2, 20)
+        start = datetime(2024, 2, 19)
+        leap = 1
+        life = create_a_life(human=target, start=start, end=end, leap=leap, nr=2, activity_type=activity_type)
         util.add_activities_to_ekg(brain, current_date, life)
 
-
-
-    recent_date = query.get_last_conversation_date(target, brain, current_date)
+    recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
     history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
 
     print('History before', recent_date, len(history), " activities")
@@ -79,10 +79,6 @@ if __name__ == "__main__":
     print("\t", future)
     print('Unknown date', len(unknown), ' activities')
     print("\t", unknown)
-
-    story_of_life = history + gap + future
-    if len(story_of_life)>0:
-        visualise_timeline.create_timeline_image(story_of_life, target, current_date)
 
     ### The next code checks the density of events in the GAP period
     ### Density is average number of event per day for the GAP period
@@ -124,8 +120,8 @@ if __name__ == "__main__":
         print('I know enough')
     else:
         print('I will ask you some questions')
-        g2km.set_target_events_for_period(target, event_type, gap_period)
-        print("Set a goal for %s as a %s in state %s" % (target, event_type, g2km.state.name))
+        g2km.set_target_events_for_period(target, activity_type, gap_period)
+        print("Set a goal for %s as a %s in state %s" % (target, activity_type, g2km.state.name))
         print('Desires', g2km.desires)
 
         while not g2km.state == ConvState.REACHED and not g2km.state == ConvState.GIVEUP:
@@ -145,8 +141,11 @@ if __name__ == "__main__":
             print('intention', g2km._intention)
             # Wait for capsule event
             if g2km.state in [ConvState.QUERY]:
-                event_date = g2km._intention["triple"]["object"]
-                event = create_an_event(target, event_date)
+                object = g2km._intention["triple"]["object"]
+                print(object['label'])
+                event_date = datetime.strptime(object['label'], '%Y-%m-%d %H:%M:%S')
+                print('Target event_date', event_date)
+                event = create_an_event(target, event_date, activity_type=activity_type)
                 util.add_activities_to_ekg(brain, current_date, [event])
 
     ### For the FUTURE, we need to check if there are activities planned
@@ -154,8 +153,8 @@ if __name__ == "__main__":
     ### We first extract the list of dates that make up the FUTURE period
     future_period = pd.date_range(current_date.date(), FUTURE_PERIOD.date())
     print('The future is', future_period)
-    for date in future_period:
-        print('Future date', date)
-        for activity in future:
-            if activity['time']==date:
-                print('\tPlanned:', activity)
+    # for date in future_period:
+    #     print('Future date', date)
+    #     for activity in future:
+    #         if activity['time']==date:
+    #             print('\tPlanned:', activity)

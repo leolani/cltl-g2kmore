@@ -1,57 +1,58 @@
 import cltl.g2kmore.thought_util as util
 from datetime import datetime
 from cltl.brain.long_term_memory import LongTermMemory
+from cltl.commons.discrete import Certainty, Polarity, Sentiment, Emotion, GoEmotion
+
 from random import choice
-from enum import Enum, auto
+#from enum import Enum, auto
+#
+# certainties = [0, 0.2, 0.5, 0.7, 1]
+# sentiments = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+# polarities = [0, 0.5, 1, 1, 1, 1]
+#
+# class GoNegEmotion(Enum):
+#     FEAR = auto()
+#     NERVOUSNESS = auto()
+#     REMORSE = auto()
+#     EMBARRASSMENT = auto()
+#     DISAPPOINTMENT = auto()
+#     SADNESS = auto()
+#     GRIEF = auto()
+#     DISGUST = auto()
+#     ANGER = auto()
+#     ANNOYANCE = auto()
+#     DISAPPROVAL = auto()
+#     REALIZATION = auto()
+#     CONFUSION = auto()
+#     @staticmethod
+#     def random():
+#         return choice(list(GoNegEmotion))
+#
+#
+# class GoPosEmotion(Enum):
+#     AMUSEMENT = auto()
+#     EXCITEMENT = auto()
+#     JOY = auto()
+#     LOVE = auto()
+#     DESIRE = auto()
+#     OPTIMISM = auto()
+#     CARING = auto()
+#     PRIDE = auto()
+#     ADMIRATION = auto()
+#     GRATITUDE = auto()
+#     RELIEF = auto()
+#     APPROVAL = auto()
+#     SURPRISE = auto()
+#     CURIOSITY = auto()
+#     CONFUSION = auto()
+#     @staticmethod
+#     def random():
+#         return choice(list(GoPosEmotion))
+#
+# class GoEmotion(Enum):
+#     NEUTRAL = auto()
 
-certainties = [0, 0.2, 0.5, 0.7, 1]
-#sentiments = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-sentiments = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-polarities = [0, 0.5, 1, 1, 1, 1]
-
-class GoNegEmotion(Enum):
-    FEAR = auto()
-    NERVOUSNESS = auto()
-    REMORSE = auto()
-    EMBARRASSMENT = auto()
-    DISAPPOINTMENT = auto()
-    SADNESS = auto()
-    GRIEF = auto()
-    DISGUST = auto()
-    ANGER = auto()
-    ANNOYANCE = auto()
-    DISAPPROVAL = auto()
-    REALIZATION = auto()
-    CONFUSION = auto()
-    @staticmethod
-    def random():
-        return choice(list(GoNegEmotion))
-
-
-class GoPosEmotion(Enum):
-    AMUSEMENT = auto()
-    EXCITEMENT = auto()
-    JOY = auto()
-    LOVE = auto()
-    DESIRE = auto()
-    OPTIMISM = auto()
-    CARING = auto()
-    PRIDE = auto()
-    ADMIRATION = auto()
-    GRATITUDE = auto()
-    RELIEF = auto()
-    APPROVAL = auto()
-    SURPRISE = auto()
-    CURIOSITY = auto()
-    CONFUSION = auto()
-    @staticmethod
-    def random():
-        return choice(list(GoPosEmotion))
-
-class GoEmotion(Enum):
-    NEUTRAL = auto()
-
-def get_last_conversation_date (target:str, brain:LongTermMemory, current_date:datetime):
+def get_last_conversation_date (target:str, brain:LongTermMemory, current_date:datetime, fixed_previous_date:datetime):
     #### We get all utterances to get the date of the previous encounter
     query = util.get_all_utterances(target)
     brain_response = brain._submit_query(query)
@@ -73,8 +74,10 @@ def get_last_conversation_date (target:str, brain:LongTermMemory, current_date:d
                 previous_conversation_date = new_date
         else:
             previous_conversation_date = new_date
-    print(previous_conversation_date, previous_conversation_date.weekday(), previous_conversation_date.strftime('%A'))
-    print("Today is", current_date.weekday(), current_date.strftime('%A'))
+    if not previous_conversation_date:
+        previous_conversation_date = fixed_previous_date
+    print('Our previous conservation was on', previous_conversation_date.strftime('%A'), previous_conversation_date)
+    print("Today is", current_date.strftime('%A'), current_date)
     duration = current_date -previous_conversation_date
     print('What happened in the last', duration.days, 'days?')
     return previous_conversation_date
@@ -82,7 +85,7 @@ def get_last_conversation_date (target:str, brain:LongTermMemory, current_date:d
 ## This functions gets all activities from the eKG (brain) and creates a dict for important properties
 ## It returns 4 different lists as the temporal containers: history, gap, future and unknown time.
 ## the temporal containers are defined using the current_date and the date of the most recent conversation.
-def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recent_date:datetime):
+def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent_date:datetime):
     ##### We get all activities  and divide them into H, G, and F given now and the previous encounter
     history = []
     gap = []
@@ -90,7 +93,6 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
     future = []
     activity_tpe = "n2mu:icf"
     query = util.get_all_instances_query(activity_tpe)
-    #print(query)
     brain_response = brain._submit_query(query)
     print('I found', len(brain_response), 'activities')
     #print(brain_response)
@@ -98,7 +100,6 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
         event_date = None
         event_location = None
         event_actors = []
-        event_perspectives = [] #### To be fixed when properly stored in the eKG
         activity_id = activity["id"]["value"]
         activity_label= activity["label"]["value"]
 
@@ -117,42 +118,31 @@ def get_temporal_containers ( brain:LongTermMemory, current_date:datetime, recen
             if 'time_id' in sem:
                 time = sem['time_id']['value']
                 start=time.rindex('/')+1
-                end = time.rindex('_')
-                event_date = datetime.strptime(time[start:end], '%Y-%m-%d')
+                event_date = datetime.strptime(time[start:], '%Y-%m-%d_%H:%M:%S')
+                ### To remove the time use the next code instead
+                #end = time.rindex('_')
+                #event_date = datetime.strptime(time[start:end], '%Y-%m-%d')
 
         #### Get perspectives
-        ## Getting this from the brain does not work so we use random values as a hack
-        ## HACK
-        certainty = choice(certainties)
-        sentiment = choice(sentiments)
-        polarity = choice(polarities)
         emotion = GoEmotion.NEUTRAL
-        if sentiment<-0.2:
-            emotion = GoNegEmotion.random()
-        elif sentiment>0.2:
-            emotion = GoPosEmotion.random()
-        ## END OF HACK
-
-        ## Get the perspectives from the brain when it works
-        # query = util.get_perspectives(activity_id)
-        # #print('perspective query', query)
-        # perspective_response = brain._submit_query(query)
-        # for p in perspective_response:
-        #     perspective = p['perspective_value']['value']
-        #     perspective = perspective[perspective.rindex("#")+1:]
-        #     if not perspective=="UNDERSPECIFIED":
-        #         print(p)
-        #         event_perspectives.append(perspective)
-
-        ## Simulating asking questions, this needs to be done through the interaction
-        # if not event_actors:
-        #     print("Tell me more about", activity_label)
-        # if not event_date:
-        #     print("Tell me when was", activity_label)
-        # if not event_location:
-        #     print("Tell me where was", activity_label)
-        # if not event_perspectives:
-        #     print("Tell me how was", activity_label)
+        certainty = Certainty.UNDERSPECIFIED
+        sentiment = Sentiment.UNDERSPECIFIED
+        polarity = Polarity.UNDERSPECIFIED
+        query = util.get_perspective_query(activity_id)
+        perspective_response = brain._submit_query(query)
+        if perspective_response:
+            for p in perspective_response:
+                perspective = p['perspective_value']['value']
+                attribute = perspective[perspective.rindex("/")+1:]
+                value = perspective[perspective.rindex("#")+1:]
+                if attribute.startswith("factuality"):
+                    polarity = value
+                elif attribute.startswith("sentiment"):
+                    sentiment = Sentiment.from_str(value).value
+                elif attribute.startswith("certainty"):
+                    certainty = value
+                elif attribute.startswith("emotion"):
+                        emotion = GoEmotion.as_enum(value)
 
         ## Creating the data structure for each activity
         activity_result = {'id':activity_id, 'label':activity_label, "actors":event_actors, "location":event_location, "time": event_date,

@@ -6,56 +6,100 @@ from cltl.brain.long_term_memory import LongTermMemory
 import os
 from pathlib import Path
 from cltl.commons.discrete import Certainty, Polarity, Sentiment, Emotion, GoEmotion
+from enum import Enum, auto
+import get_temporal_containers as query
 
 
-locations = ["chidos", "labas", "living_room", "vu", "carls_home", "carlas_home", "hospital", "bridge_club", "health_center", "dentist_center"]
-activities = ["doctor", "dentist", "swimming", "walking","gym", "lunch", "breakfast", "dinner", "shopping", 'cooking', "cleaning", "washing", "visit", "reading", "watch_tv", "bridge"]
+##### Predefined items to pick from
+locations = ["chidos", "labas", "living_room", "VU", "carl_home", "carla_home", "hospital", "club", "health_center"]
+activities = ["doctor", "dentist", "hair", "museum", "swim", "walk","gym", "lunch", "breakfast", "dinner", "shop", 'cook', "clean", "wash", "visit", "read", "tv", "bridge"]
 friends = ["carla", "fred", "john", "mary"]
-certainties = [0, 0.2, 0.5, 0.7, 1]
-sentiments = [-1, -0.7, -0.5, 0.2, 0, 0.2, 0.5, 0.7, 1]
-polarities = [0, 0.5, 1]
-emotions = [GoEmotion.DISAPPOINTMENT, GoEmotion.JOY, GoEmotion.ANGER, GoEmotion.AMUSEMENT, GoEmotion.APPROVAL, GoEmotion.ANNOYANCE, GoEmotion.CONFUSION, GoEmotion.DISAPPROVAL, GoEmotion.DISGUST, GoEmotion.EXCITEMENT]
 
-def create_an_event(human:str, event_date:datetime):
+#sentiments = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+
+class GoNegEmotion(Enum):
+    FEAR = auto()
+    NERVOUSNESS = auto()
+    REMORSE = auto()
+    EMBARRASSMENT = auto()
+    DISAPPOINTMENT = auto()
+    SADNESS = auto()
+    GRIEF = auto()
+    DISGUST = auto()
+    ANGER = auto()
+    ANNOYANCE = auto()
+    DISAPPROVAL = auto()
+    REALIZATION = auto()
+    CONFUSION = auto()
+
+    @staticmethod
+    def random():
+        emotion= choice(list(GoNegEmotion))
+        return emotion.name
+
+class GoPosEmotion(Enum):
+    AMUSEMENT = auto()
+    EXCITEMENT = auto()
+    JOY = auto()
+    LOVE = auto()
+    DESIRE = auto()
+    OPTIMISM = auto()
+    CARING = auto()
+    PRIDE = auto()
+    ADMIRATION = auto()
+    GRATITUDE = auto()
+    RELIEF = auto()
+    APPROVAL = auto()
+    SURPRISE = auto()
+    CURIOSITY = auto()
+
+    @staticmethod
+    def random():
+        emotion = choice(list(GoPosEmotion))
+        return emotion.name
+
+def create_an_event(human:str, event_date:datetime, activity_type):
     location = choice(locations)
     activity = choice(activities)
     friend = choice(friends)
-    # certainty = choice(certainties)
-    # sentiment = choice(sentiments)
-    # polarity = choice(polarities)
-    # emotion= choice(emotions)
-
-    certainty = random.randint(1, Certainty.__len__()-1)
-    sentiment = random.randint(1, Sentiment.__len__()-1)
-    polarity = random.randint(1, Polarity.__len__()-1)
-    emotion = random.randint(1, GoEmotion.__len__()-1)
-    #emotion = random.randint(1, Emotion.__len__()-1)
-
+    i = choice(range(6,20)) ### pick a random hour
+    print('The hour is', i)
+    updated_time = event_date + timedelta(hours=i)
+    certainty = choice(list(Certainty))
+       # random.randint(1, Certainty.__len__()-1)
+    sentiment = choice(list(Sentiment))
+    polarity = choice(list(Polarity))
+    emotion = GoEmotion.NEUTRAL
+    if sentiment.value < -0.2:
+        emotion = GoNegEmotion.random()
+    elif sentiment.value > 0.2:
+        emotion = GoPosEmotion.random()
     event_data = {
-        "time": event_date,
+        "time": updated_time,
         "location": location,
         "activity_label": activity,
-        "activity_type": "n2mu:icf",
+        "activity_type": activity_type,
         "actor1": human,
         "actor2": friend,
         "author": human,
         "author_uri": "http://cltl.nl/leolani/n2mu/" + human,
         "perspective": {"certainty": certainty,
                         "sentiment": sentiment,
-                        "emotion":emotion,
+                        "emotion": emotion,
                         "polarity": polarity
                         }
     }
+    #print('event_data', sentiment, emotion)
     return event_data
 
-def create_a_life(human: str, start: date, end: date, leap:int, nr:int):
+def create_a_life(human: str, start: date, end: date, leap:int, nr:int, activity_type="activity"):
     life = []
     event_date = start
     while event_date<end:
         nr_events = random.randint(1, nr)
         for i in range(nr_events):
-            event_data = create_an_event(human, event_date)
-            life.append(event_data)
+            event = create_an_event(human, event_date, activity_type=activity_type)
+            life.append(event)
         ### jump in time some days random from deltas
         days = random.randint(1, leap)
         event_date = event_date+timedelta(days=days)
@@ -69,8 +113,7 @@ if __name__ == "__main__":
     print(life)
     activity = life[0]
 
-    capsule = util.make_activity_capsule_for_perspective(1, 1,
-                                                         activity['activity_label'],
+    capsule = util.make_activity_capsule(1, 1, activity['activity_label'],
                                                          "",
                                                          activity['activity_type'],
                                                          activity['author'],
@@ -87,15 +130,26 @@ if __name__ == "__main__":
     brain.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
 
 
-    query = util.get_all_instances_query("icf")
-    brain_response = brain._submit_query(query)
+    activity_tpe = "n2mu:icf"
+    activity_query = util.get_all_instances_query(activity_tpe)
+    brain_response = brain._submit_query(activity_query)
     print('I found', len(brain_response), 'activities')
+
+
+    #### We can simulate another day as now!
+    target = "carl"
+    current_date = datetime(2024, 2, 11)
+    PREVIOUS_DATE = datetime(2024,2, 2)
+    FUTURE_PERIOD = datetime(2024, 2, 29)
+    recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
+    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
+
     #print(brain_response)
     for activity in brain_response:
         activity_id = activity["id"]["value"]
         activity_label= activity["label"]["value"]
         event_perspectives = [] #### To be fixed when properly stored in the eKG
-
+        print(activity_id)
         # Get the perspectives from the brain when it works
         query = util.get_perspective_query(activity_id)
         #print('perspective query', query)
@@ -104,6 +158,5 @@ if __name__ == "__main__":
             perspective = p['perspective_value']['value']
             perspective = perspective[perspective.rindex("#")+1:]
             if not perspective=="UNDERSPECIFIED":
-                print(p)
                 event_perspectives.append(perspective)
-        print(event_perspectives)
+        print('event_perspectives', event_perspectives)
