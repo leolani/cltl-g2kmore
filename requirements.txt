@@ -7,3 +7,6 @@ SPARQLWrapper
 iribaker
 fuzzywuzzy
 seaborn
+cltl.brain[service]
+emissor
+cltl.combot

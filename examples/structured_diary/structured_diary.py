@@ -17,7 +17,7 @@ n2mu = "http://cltl.nl/leolani/n2mu/"
 sem = "http://semanticweb.cs.vu.nl/2009/11/sem/"
 leolaniworld = "http://cltl.nl/leolani/world/"
 #
-# #TODO integrate this with the way perspectives are store in the eKG
+# #TODO integrate this with the way perspectives are stored in the eKG
 # class Factuality(enum.Enum):
 #     REALIS = 1 # polarity: 1.0
 #     IRREALIS = 2 # polarity: 0.5
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     saturation_threshold = 1.0
 
     activity_type="icf"
-    target = "carl"
+    target = "carla"
     current_date = datetime.today()
     #### We can simulate another day as now!
     current_date = datetime(2024, 2, 15)

@@ -11,9 +11,9 @@ import get_temporal_containers as query
 
 
 ##### Predefined items to pick from
-locations = ["chidos", "labas", "living_room", "VU", "carl_home", "carla_home", "hospital", "club", "health_center"]
-activities = ["doctor", "dentist", "hair", "museum", "swim", "walk","gym", "lunch", "breakfast", "dinner", "shop", 'cook', "clean", "wash", "visit", "read", "tv", "bridge"]
-friends = ["carla", "fred", "john", "mary"]
+locations = ["chidos", "labas", "living_room", "city centre",  "VU", "carl_home", "carla_home", "hospital", "club", "health_center"]
+activities = ["doctor", "school", "dancing", "dentist", "hair", "museum", "swim", "walk","gym", "lunch", "breakfast", "dinner", "shop", 'cook', "clean", "wash", "visit", "read", "tv", "bridge"]
+friends = ["carla", "fred", "john", "mary", "peter", "jorge", "suzy"]
 
 #sentiments = [-1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
 

@@ -39,10 +39,16 @@ def get_activity_in_period(activities:[], current_date: datetime):
 def create_timeline_image(story_of_life:[], target:str,  current_date: datetime):
     earliest, latest, period, activity_in_period = get_activity_in_period(story_of_life, current_date=current_date)
     df = pd.DataFrame(activity_in_period, index=period)
-    sns.set_style("darkgrid", {"grid.color": ".6", "grid.linestyle": ":"})
+    plt.rcParams['figure.figsize'] = [2.0 * len(activity_in_period), 5]
+
+    sns.set_style("whitegrid", {"grid.color": ".8", "grid.linestyle": ":", 'axes.grid': True})
+    sns.set_context("talk", font_scale=0.8)
+    ### other themes: paper, talk, poster, notebook (default)
+
     #print(df.head())
  #   ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df, size="certainty", style='label', palette="deep", sizes=(20, 200), legend="full")
-    ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty", palette="deep", legend="full")
+    ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty", palette="pastel", legend="brief")
+    # palette = "pastel, flare/bright/deep/muted/colorblind/dark"
 
     for index, row in df.iterrows():
         x = row['time']
@@ -54,8 +60,9 @@ def create_timeline_image(story_of_life:[], target:str,  current_date: datetime)
 
         ax.text(x, y,
                 s=" " + str(category) + str(actors) + "\n   " + str(emotion.name).lower() + "_" + polarity,
+                rotation=50,
                 horizontalalignment='left', size='small', color='black', verticalalignment='bottom',
-                linespacing=1)
+                linespacing=1.5)
 
     ax.tick_params(axis='x', rotation=70)
     # Show the plot

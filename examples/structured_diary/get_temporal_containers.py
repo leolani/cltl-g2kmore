@@ -141,8 +141,8 @@ def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent
                     sentiment = Sentiment.from_str(value).value
                 elif attribute.startswith("certainty"):
                     certainty = value
-                elif attribute.startswith("emotion"):
-                        emotion = GoEmotion.as_enum(value)
+                # elif attribute.startswith("emotion"):
+                #         emotion = GoEmotion.as_enum(value)
 
         ## Creating the data structure for each activity
         activity_result = {'id':activity_id, 'label':activity_label, "actors":event_actors, "location":event_location, "time": event_date,

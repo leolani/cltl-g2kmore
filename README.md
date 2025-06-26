@@ -1,6 +1,8 @@
 # cltl-g2kmore
 
-Higher order **INTENT** model following a Belief-Desire-Intent model. The goal of this model is to get more knowledgeable about a topic of a certain type, aboit you as a person or Amsterdam as a city.
+This application uses an episodic Knowledge Graph to drive the communication with a user witht he goal to learn about the Activities of Daily Life (ADL), such as eating, cooking, visiting friends, watching movies, sleeping, etc.
+
+Higher order **INTENT** model following a Belief-Desire-Intent model. The goal of this model is to get more knowledgeable about a topic of a certain type, about you as a person or Amsterdam as a city.
 The module proceeds according to the following steps, defined in _take_action(target, type):
 
 1. _define(target, type): defines the goals
@@ -25,6 +27,18 @@ The evaluation function:
 1. Checks if all gaps are filled or the number of attempts exceeded a threshold (__goal_attempts_max)
 2. If not it randomly selects a gap as the _focus or continues with the current _focus unless it exceeds a threshold (_focus_attempt_max)
 
+
+# Reference
+P. Vossen, S. Báez Santamaría, and T. Baier, “A conversational agent for structured diary construction enabling monitoring of functioning & well-being,” in Hhai 2024: hybrid human ai systems for the social good, IOS Press, 2024, p. 315–324.
+[BibTeX]
+@incollection{vossen2024conversational,
+title={A Conversational Agent for Structured Diary Construction Enabling Monitoring of Functioning \& Well-Being},
+author={Vossen, Piek and B{\'a}ez Santamar{\'\i}a, Selene and Baier, Thomas},
+booktitle={HHAI 2024: Hybrid Human AI Systems for the Social Good},
+pages={315--324},
+year={2024},
+publisher={IOS Press}
+}
 
 This repository is a component of the [Leolani framework](https://github.com/leolani/cltl-combot).
 For usage of the component within the framework see the instructions there.
