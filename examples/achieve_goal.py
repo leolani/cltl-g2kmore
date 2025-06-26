@@ -49,7 +49,7 @@ if __name__ == "__main__":
     replier = LenkaReplier()
     g2km = BrainGetToKnowMore(brain, max_attempts=10, max_intention_attempts=3)
 
-    target = ("franticsek")
+    target = ("carl")
     type = "person"
     g2km.set_target(target, type)
     print("Set a goal for %s as a %s in state %s" % (target, type, g2km.state.name))

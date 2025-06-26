@@ -59,7 +59,8 @@ def create_timeline_image(story_of_life:[], target:str,  current_date: datetime)
         emotion = row['emotion']
 
         ax.text(x, y,
-                s=" " + str(category) + str(actors) + "\n   " + str(emotion.name).lower() + "_" + polarity,
+             #   s=" " + str(category) + str(actors) + "\n   " + str(emotion.name).lower() + "_" + polarity,
+                s=" " + str(category) + str(actors) + "\n" ,
                 rotation=50,
                 horizontalalignment='left', size='small', color='black', verticalalignment='bottom',
                 linespacing=1.5)
