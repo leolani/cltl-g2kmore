@@ -1,4 +1,3 @@
-.[impl, service, example]
 pandas
 rdflib
 importlib_resources
