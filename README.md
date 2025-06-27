@@ -1,6 +1,8 @@
 # cltl-g2kmore
 
-This application uses an episodic Knowledge Graph to drive the communication with a user witht he goal to learn about the Activities of Daily Life (ADL), such as eating, cooking, visiting friends, watching movies, sleeping, etc.
+This application uses an episodic Knowledge Graph (eKG) to drive the communication with a user to learn about his/her Activities of Daily Life (ADL), such as eating, cooking, visiting friends, watching movies, sleeping, etc.
+To achieve this it queries the eKG for all activities already stored and asks questions to fill any gaps between the current interaction and the last interaction, basically asking what you have been up to lately.
+See our reference for further explanations and motivation.
 
 Higher order **INTENT** model following a Belief-Desire-Intent model. The goal of this model is to get more knowledgeable about a topic of a certain type, about you as a person or Amsterdam as a city.
 The module proceeds according to the following steps, defined in _take_action(target, type):
@@ -27,8 +29,34 @@ The evaluation function:
 1. Checks if all gaps are filled or the number of attempts exceeded a threshold (__goal_attempts_max)
 2. If not it randomly selects a gap as the _focus or continues with the current _focus unless it exceeds a threshold (_focus_attempt_max)
 
+## Examples
 
-# Reference
+In the examples folder you find some scripts to demonstrate the application:
+
+* structured_diary/generate_events.py
+* structured_diary/structured_diary.py
+* structured_diary/visualise_timeline.py
+* get_temporal_containers.py
+* achieve_goal.py
+
+The application has some helper functions to preload a history of events in the eKG, which can either be loaded from a JSON file
+or generated randomly. For the latter, you can specify the list of people, places and activities from which it draws random combinations centered around the name of the user.
+
+Furthermore, it has a function to visualise the eKG history on a timeline for a given period. 
+
+## Requirements
+The application was created in Python 3.9. The dependencies are defined in the requirements.txt file. To get started:
+
+1. create a virtual environment with Python 3.9 and activate the environment
+2. run pip install -r requirements.txt from the command line with the environment active
+3. Download and install [GraphDB](https://www.ontotext.com/products/graphdb) on your local computer
+4. Define a new repository in GraphDB with the name "demo" which will act as the episodic Knowledge Graph
+
+##
+
+## Events
+
+## Reference
 P. Vossen, S. Báez Santamaría, and T. Baier, “A conversational agent for structured diary construction enabling monitoring of functioning & well-being,” in Hhai 2024: hybrid human ai systems for the social good, IOS Press, 2024, p. 315–324.
 [BibTeX]
 @incollection{vossen2024conversational,
