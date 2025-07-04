@@ -106,27 +106,26 @@ def create_a_life(human: str, start: date, end: date, leap:int, nr:int, activity
 
 
 if __name__ == "__main__":
-    end = datetime(2024, 3, 12)
-    start = datetime(2023, 12, 5)
-    life = create_a_life(human = "carl", start=start, leap=2, end=end, nr=2)
-    print(life)
-    activity = life[0]
-
-    capsule = util.make_activity_capsule(1, 1, activity['activity_label'],
-                                                         "",
-                                                         activity['activity_type'],
-                                                         activity['author'],
-                                                         activity['author_uri'],
-                                                         activity['perspective'])
-    print(capsule)
-
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
     brain = LongTermMemory(address="http://localhost:7200/repositories/demo",
                            log_dir=Path(log_path), clear_all=False)
+    current_date = datetime(2024, 2, 15)
 
-    brain.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
+    end = datetime(2024, 3, 12)
+    start = datetime(2023, 12, 5)
+    life = create_a_life(human = "carl", start=start, leap=2, end=end, nr=2, activity_type="icf")
+    util.add_activities_to_ekg(brain, current_date=current_date, activities=life)
+    # for activity in life:
+    #    capsule = util.make_activity_capsule(1, 1, activity['activity_label'],
+    #                                                      "",
+    #                                                      activity['activity_type'],
+    #                                                      activity['author'],
+    #                                                      activity['author_uri'],
+    #                                                      activity['perspective'])
+        #print(capsule)
+    #   brain.capsule_mention(capsule, reason_types=False, return_thoughts=False, create_label=True)
 
 
     activity_tpe = "n2mu:icf"
@@ -135,27 +134,27 @@ if __name__ == "__main__":
     print('I found', len(brain_response), 'activities')
 
 
-    #### We can simulate another day as now!
-    target = "carl"
-    current_date = datetime(2024, 2, 11)
-    PREVIOUS_DATE = datetime(2024,2, 2)
-    FUTURE_PERIOD = datetime(2024, 2, 29)
-    recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
-    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
-
-    #print(brain_response)
-    for activity in brain_response:
-        activity_id = activity["id"]["value"]
-        activity_label= activity["label"]["value"]
-        event_perspectives = [] #### To be fixed when properly stored in the eKG
-        print(activity_id)
-        # Get the perspectives from the brain when it works
-        query = util.get_perspective_query(activity_id)
-        #print('perspective query', query)
-        perspective_response = brain._submit_query(query)
-        for p in perspective_response:
-            perspective = p['perspective_value']['value']
-            perspective = perspective[perspective.rindex("#")+1:]
-            if not perspective=="UNDERSPECIFIED":
-                event_perspectives.append(perspective)
-        print('event_perspectives', event_perspectives)
+    # #### We can simulate another day as now!
+    # target = "carl"
+    # current_date = datetime(2024, 1, 11)
+    # PREVIOUS_DATE = datetime(2024,1, 2)
+    # FUTURE_PERIOD = datetime(2024, 2, 29)
+    # recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
+    # history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
+    #
+    # #print(brain_response)
+    # for activity in brain_response:
+    #     activity_id = activity["id"]["value"]
+    #     activity_label= activity["label"]["value"]
+    #     event_perspectives = [] #### To be fixed when properly stored in the eKG
+    #     print(activity_id)
+    #     # Get the perspectives from the brain when it works
+    #     query = util.get_perspective_query(activity_id)
+    #     #print('perspective query', query)
+    #     perspective_response = brain._submit_query(query)
+    #     for p in perspective_response:
+    #         perspective = p['perspective_value']['value']
+    #         perspective = perspective[perspective.rindex("#")+1:]
+    #         if not perspective=="UNDERSPECIFIED":
+    #             event_perspectives.append(perspective)
+    #     print('event_perspectives', event_perspectives)

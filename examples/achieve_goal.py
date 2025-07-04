@@ -58,6 +58,7 @@ if __name__ == "__main__":
         print('=======', g2km.state, '=======')
         # Reply is sometimes None as the replier randomly chooses between object and subject gaps
         response = g2km.evaluate_and_act()
+        print('Nr of desires', len(g2km.desires))
 
         if not response:
             pass
@@ -71,3 +72,6 @@ if __name__ == "__main__":
         if g2km.state in [ConvState.QUERY]:
             capsule = fake_user_input(g2km.intention)
             brain.capsule_statement(capsule, reason_types=True, return_thoughts=True, create_label=True)
+
+    print('Nr of desires', len(g2km.desires))
+    print('g2km.state', g2km.state)

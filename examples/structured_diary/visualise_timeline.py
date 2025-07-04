@@ -36,18 +36,18 @@ def get_activity_in_period(activities:[], current_date: datetime):
             activity_in_period.append(activity)
     return earliest_day, latest_day, period, activity_in_period
 
-def create_timeline_image(story_of_life:[], target:str,  current_date: datetime):
+def create_timeline_image(name:str, story_of_life:[], target:str,  current_date: datetime):
     earliest, latest, period, activity_in_period = get_activity_in_period(story_of_life, current_date=current_date)
     df = pd.DataFrame(activity_in_period, index=period)
-    plt.rcParams['figure.figsize'] = [2.0 * len(activity_in_period), 5]
+    plt.rcParams['figure.figsize'] = [2.0 * len(activity_in_period), 10]
 
     sns.set_style("whitegrid", {"grid.color": ".8", "grid.linestyle": ":", 'axes.grid': True})
-    sns.set_context("talk", font_scale=0.8)
+    sns.set_context("talk", font_scale=1.0)
     ### other themes: paper, talk, poster, notebook (default)
 
     #print(df.head())
  #   ax = sns.scatterplot(x='time', y='sentiment', hue='label', data=df, size="certainty", style='label', palette="deep", sizes=(20, 200), legend="full")
-    ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty", palette="pastel", legend="brief")
+    ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty", palette="pastel", legend="brief", marker="o")
     # palette = "pastel, flare/bright/deep/muted/colorblind/dark"
 
     for index, row in df.iterrows():
@@ -68,7 +68,7 @@ def create_timeline_image(story_of_life:[], target:str,  current_date: datetime)
     ax.tick_params(axis='x', rotation=70)
     # Show the plot
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
-    path = target + ".png"
+    path = name+ "_"+target + ".png"
     # plt.savefig(path, dpi=300, transparent=True)
     plt.savefig(path)
     plt.show()
@@ -81,9 +81,9 @@ if __name__ == "__main__":
     target = "carl"
     current_date = datetime.today()
     #### We can simulate another day as now!
-    current_date = datetime(2024, 2, 15)
-    PREVIOUS_DATE = datetime(2024,2, 9)
-    FUTURE_PERIOD = datetime(2024, 2, 29)
+    current_date = datetime(2024, 2, 6)
+    PREVIOUS_DATE = datetime(2024,2, 2)
+    FUTURE_PERIOD = datetime(2024, 2, 10)
 
 
     logging.basicConfig(
@@ -103,7 +103,11 @@ if __name__ == "__main__":
     # story_of_life = brain._submit_query(activity_query)
 
     recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
-    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
+    #history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
+    activity_type = "n2mu:icf"
+    activity_label = "dinner"
+
+    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type="n2mu:icf", label=None)
 
     print('History before', recent_date, len(history), " activities")
     print("\t", history)
@@ -116,5 +120,20 @@ if __name__ == "__main__":
 
     story_of_life = history + gap + future
     if len(story_of_life)>0:
-        create_timeline_image(story_of_life, target, current_date)
+        create_timeline_image(activity_type, story_of_life, target, current_date)
+
+    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type=None, label = activity_label)
+
+    print('History before', recent_date, len(history), " activities")
+    print("\t", history)
+    print('Gap between', recent_date, " and ", current_date, len(gap), " activities")
+    print("\t", gap)
+    print('Future after', current_date, len(future), " activities")
+    print("\t", future)
+    print('Unknown date', len(unknown), ' activities')
+    print("\t", unknown)
+
+    story_of_life = history + gap + future
+    if len(story_of_life) > 0:
+        create_timeline_image(activity_label, story_of_life, target, current_date)
 

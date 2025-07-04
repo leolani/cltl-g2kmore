@@ -85,14 +85,20 @@ def get_last_conversation_date (target:str, brain:LongTermMemory, current_date:d
 ## This functions gets all activities from the eKG (brain) and creates a dict for important properties
 ## It returns 4 different lists as the temporal containers: history, gap, future and unknown time.
 ## the temporal containers are defined using the current_date and the date of the most recent conversation.
-def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent_date:datetime):
+def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent_date:datetime, activity_type:str ="n2mu:icf", label:str=None):
     ##### We get all activities  and divide them into H, G, and F given now and the previous encounter
     history = []
     gap = []
     unknown = []
     future = []
-    activity_tpe = "n2mu:icf"
-    query = util.get_all_instances_query(activity_tpe)
+    query = None
+    if activity_type and label is None:
+        # activity_type need to be full uri's prefixed with a namespace.
+        # the standard namespace for activities is "n2mu", e.g. "n2my:icf"
+        query = util.get_all_instances_query(activity_type)
+    else:
+        query = util.get_all_label_matches_query(label)
+    print(query)
     brain_response = brain._submit_query(query)
     print('I found', len(brain_response), 'activities')
     #print(brain_response)
@@ -101,8 +107,10 @@ def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent
         event_location = None
         event_actors = []
         activity_id = activity["id"]["value"]
-        activity_label= activity["label"]["value"]
-
+        if "label" in activity:
+            activity_label= activity["label"]["value"]
+        else:
+            activity_label = label
         #### Get SEM relations
         query = util.get_sem_relation_query(activity_id)
         sem_response = brain._submit_query(query)

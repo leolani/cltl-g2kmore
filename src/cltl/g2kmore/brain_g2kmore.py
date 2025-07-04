@@ -71,6 +71,7 @@ class BrainGetToKnowMore(GetToKnowMore):
                                                reason_types=True, return_thoughts=True, create_label=False)
         self.desires = util.get_gaps_from_thought_response([brain_response_to_json(brain_response)])
         self._state = ConvState.START
+        print('Nr of desires', len(self.desires))
         logger.debug("Set target to %s[%s], set %s desires (%s)", self._target, self._target_type, len(self.desires), self._state)
 
     def set_target_events_for_period(self, target_label: str, target_type: str, period:[]):

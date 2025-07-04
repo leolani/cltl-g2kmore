@@ -517,6 +517,16 @@ def get_all_instances_query(type):
                 }"
     return query
 
+def get_all_label_matches_query(label):
+    query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
+            PREFIX ns2: <sem:>\
+            select ?id ?label where {\
+            ?id ns2:hasTime ?time. \
+            ?id rdfs:label \"" + label + "\". \
+                }"
+    return query
+
 def get_sem_relation_query(event_id):
         query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
                 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
