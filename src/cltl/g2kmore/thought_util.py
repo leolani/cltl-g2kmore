@@ -540,6 +540,25 @@ def get_sem_relation_query(event_id):
             } "
         return query
 
+
+def get_role_relation_query(event_id):
+        query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
+                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
+        PREFIX sem: <http://semanticweb.cs.vu.nl/2009/11/sem/> \
+        PREFIX gaf: <http://groundedannotationframework.org/gaf#>\
+        select ?agent_id ?patient_id ?manner_id ?instrument_id ?place_id ?time_id where { \
+                { \
+                    { <" + event_id +  "> n2mu:agent ?agent_id} UNION \
+                    { <" + event_id +  "> n2mu:patient ?patient_id} UNION \
+                    { <" + event_id +  "> n2mu:instrument ?instrument_id} UNION \
+                    { <" + event_id +  "> n2mu:manner ?manner_id} UNION \
+                    { <" + event_id + "> n2mu:location ?place_id} \
+                } \
+        <" + event_id +"> gaf:denotedIn ?u . \
+        ?u sem:hasBeginTimeStamp ?time_id \
+                        }"
+        return query
+
 def get_perspective_query(event_id):
     query = "PREFIX n2mu: <http://cltl.nl/leolani/n2mu/>\
             PREFIX grasp: <http://groundedannotationframework.org/grasp#>\
