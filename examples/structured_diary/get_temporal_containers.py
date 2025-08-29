@@ -172,3 +172,104 @@ def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent
             gap.append(activity_result)
 
     return history, gap, future, unknown
+
+
+
+## This functions gets all activities involving a specific agent from the eKG (brain) and creates a dict for important properties
+## It returns a single temporal containers.
+def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activity_type:str ="n2mu:activity", label:str=None):
+    ##### We get all activities  and divide them into H, G, and F given now and the previous encounter
+    history = []
+    query = None
+    if activity_type and label is None:
+        # activity_type need to be full uri's prefixed with a namespace.
+        # the standard namespace for activities is "n2mu", e.g. "n2mu:icf"
+        query = util.get_all_instances_query(activity_type)
+    else:
+        query = util.get_all_label_matches_query(label)
+    print(query)
+    brain_response = brain._submit_query(query)
+    print('I found', len(brain_response), 'activities')
+    #print(brain_response)
+    for activity in brain_response:
+        event_date = None
+        event_location = None
+        event_actors = []
+        activity_id = activity["id"]["value"]
+        if "label" in activity:
+            activity_label= activity["label"]["value"]
+        else:
+            activity_label = label
+        #### Get SRL relations
+        query = util.get_role_relation_query(activity_id)
+        #print(query)
+        srl_response = brain._submit_query(query)
+        for srl in srl_response:
+            if 'agent_id' in srl:
+                actor = srl['agent_id']['value']
+                actor = actor[actor.rindex("/")+1:]
+                if not actor in event_actors:
+                    event_actors.append(actor)
+            if 'patient_id' in srl:
+                actor = srl['patient_id']['value']
+                actor = actor[actor.rindex("/") + 1:]
+                if not actor in event_actors:
+                    event_actors.append(actor)
+            if 'instrument_id' in srl:
+                actor = srl['instrument_id']['value']
+                actor = actor[actor.rindex("/") + 1:]
+                if not actor in event_actors:
+                    event_actors.append(actor)
+            if 'manner_id' in srl:
+                actor = srl['manner_id']['value']
+                actor = actor[actor.rindex("/") + 1:]
+                if not actor in event_actors:
+                    event_actors.append(actor)
+            if 'place_id' in srl:
+                event_location = srl['place_id']['value']
+                event_location = event_location[event_location.rindex("/")+1:]
+            if 'time_id' in srl:
+                time = srl['time_id']['value']
+                event_date = datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+                #start=time.rindex('/')+1
+                #event_date = datetime.strptime(time[start:], '%Y-%m-%d_%H:%M:%S')
+                ### To remove the time use the next code instead
+                #end = time.rindex('_')
+                #event_date = datetime.strptime(time[start:end], '%Y-%m-%d')
+
+        #### Get perspectives
+        emotion = GoEmotion.NEUTRAL
+        certainty = Certainty.UNDERSPECIFIED
+        sentiment = Sentiment.UNDERSPECIFIED
+        polarity = Polarity.UNDERSPECIFIED
+        query = util.get_perspective_query(activity_id)
+        perspective_response = brain._submit_query(query)
+        if perspective_response:
+            for p in perspective_response:
+                perspective = p['perspective_value']['value']
+                attribute = perspective[perspective.rindex("/")+1:]
+                value = perspective[perspective.rindex("#")+1:]
+                if attribute.startswith("factuality"):
+                    polarity = value
+                elif attribute.startswith("sentiment"):
+                    sentiment = Sentiment.from_str(value).value
+                elif attribute.startswith("certainty"):
+                    certainty = value
+                # elif attribute.startswith("emotion"):
+                #         emotion = GoEmotion.as_enum(value)
+
+        ## Creating the data structure for each activity
+        activity_result = {'id':activity_id, 'label':activity_label, "actors":event_actors, "location":event_location, "time": event_date,
+                           #"perspective": len(event_perspectives)
+                           'emotion': emotion,
+                           'certainty': certainty,
+                           'sentiment': sentiment,
+                           'polarity': polarity
+                           }
+
+        ## Saving the activity in different temporal containers
+        if  event_date and agent in event_actors:
+            history.append(activity_result)
+
+
+    return history

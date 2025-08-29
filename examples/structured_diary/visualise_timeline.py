@@ -77,12 +77,16 @@ def create_timeline_image(name:str, story_of_life:[], target:str,  current_date:
 
 if __name__ == "__main__":
 
-    event_type="icf"
-    target = "carl"
+    what = "bio"
+
+    event_type="activity"
+    target = "Jan"
+    activity_type = "n2mu:activity"
+    activity_label = "dinner"
     current_date = datetime.today()
     #### We can simulate another day as now!
-    current_date = datetime(2024, 2, 6)
-    PREVIOUS_DATE = datetime(2024,2, 2)
+    current_date = datetime(2015, 7, 1)
+    PREVIOUS_DATE = datetime(2010,2, 1)
     FUTURE_PERIOD = datetime(2024, 2, 10)
 
 
@@ -95,45 +99,45 @@ if __name__ == "__main__":
     log_path = "log_path"
     if not os.path.exists(log_path):
         dir = os.mkdir(log_path)
-    brain = LongTermMemory(address="http://localhost:7200/repositories/demo",
+    brain = LongTermMemory(address="http://localhost:7200/repositories/diabetes",
                            log_dir=Path(log_path), clear_all=False)
 
-    # activity_tpe = "n2mu:icf"
-    # activity_query = util.get_all_instances_query(activity_tpe)
-    # story_of_life = brain._submit_query(activity_query)
+    if what=="bio":
+        story_of_life = query.get_temporal_container_for_agent(brain, agent=target, activity_type=activity_type)
+        print('Found:', len(story_of_life), "activities for", target)
+        if len(story_of_life)>0:
+            create_timeline_image(activity_type, story_of_life, target, current_date)
+    else:
+            recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
+            #history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
 
-    recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
-    #history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
-    activity_type = "n2mu:icf"
-    activity_label = "dinner"
+            history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type="n2mu:activity", label=None)
 
-    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type="n2mu:icf", label=None)
+            print('History before', recent_date, len(history), " activities")
+            print("\t", history)
+            print('Gap between', recent_date, " and ", current_date, len(gap), " activities")
+            print("\t", gap)
+            print('Future after', current_date, len(future), " activities")
+            print("\t", future)
+            print('Unknown date', len(unknown), ' activities')
+            print("\t", unknown)
 
-    print('History before', recent_date, len(history), " activities")
-    print("\t", history)
-    print('Gap between', recent_date, " and ", current_date, len(gap), " activities")
-    print("\t", gap)
-    print('Future after', current_date, len(future), " activities")
-    print("\t", future)
-    print('Unknown date', len(unknown), ' activities')
-    print("\t", unknown)
+            story_of_life = history + gap + future
+            if len(story_of_life)>0:
+                create_timeline_image(activity_type, story_of_life, target, current_date)
 
-    story_of_life = history + gap + future
-    if len(story_of_life)>0:
-        create_timeline_image(activity_type, story_of_life, target, current_date)
+            history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type=None, label = activity_label)
 
-    history, gap, future, unknown = query.get_temporal_containers(brain, current_date, PREVIOUS_DATE, activity_type=None, label = activity_label)
+            print('History before', recent_date, len(history), " activities")
+            print("\t", history)
+            print('Gap between', recent_date, " and ", current_date, len(gap), " activities")
+            print("\t", gap)
+            print('Future after', current_date, len(future), " activities")
+            print("\t", future)
+            print('Unknown date', len(unknown), ' activities')
+            print("\t", unknown)
 
-    print('History before', recent_date, len(history), " activities")
-    print("\t", history)
-    print('Gap between', recent_date, " and ", current_date, len(gap), " activities")
-    print("\t", gap)
-    print('Future after', current_date, len(future), " activities")
-    print("\t", future)
-    print('Unknown date', len(unknown), ' activities')
-    print("\t", unknown)
-
-    story_of_life = history + gap + future
-    if len(story_of_life) > 0:
-        create_timeline_image(activity_label, story_of_life, target, current_date)
+            story_of_life = history + gap + future
+            if len(story_of_life) > 0:
+                create_timeline_image(activity_label, story_of_life, target, current_date)
 
