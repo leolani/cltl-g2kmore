@@ -1,3 +1,5 @@
+import random
+
 import cltl.g2kmore.thought_util as util
 from datetime import datetime
 from cltl.brain.long_term_memory import LongTermMemory
@@ -194,7 +196,8 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
     for activity in brain_response:
         event_date = None
         event_location = None
-        event_actors = []
+        event_agents = []
+        event_patients = []
         activity_id = activity["id"]["value"]
         if "label" in activity:
             activity_label= activity["label"]["value"]
@@ -208,23 +211,23 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
             if 'agent_id' in srl:
                 actor = srl['agent_id']['value']
                 actor = actor[actor.rindex("/")+1:]
-                if not actor in event_actors:
-                    event_actors.append(actor)
+                if not actor in event_agents:
+                    event_agents.append(actor)
             if 'patient_id' in srl:
                 actor = srl['patient_id']['value']
-                actor = actor[actor.rindex("/") + 1:]
-                if not actor in event_actors:
-                    event_actors.append(actor)
-            if 'instrument_id' in srl:
-                actor = srl['instrument_id']['value']
-                actor = actor[actor.rindex("/") + 1:]
-                if not actor in event_actors:
-                    event_actors.append(actor)
-            if 'manner_id' in srl:
-                actor = srl['manner_id']['value']
-                actor = actor[actor.rindex("/") + 1:]
-                if not actor in event_actors:
-                    event_actors.append(actor)
+                actor = actor[actor.rindex("/") + 1:].lower()
+                if not actor in event_patients:
+                    event_patients.append(actor)
+            # if 'instrument_id' in srl:
+            #     actor = srl['instrument_id']['value']
+            #     actor = actor[actor.rindex("/") + 1:]
+            #     if not actor in event_actors:
+            #         event_actors.append(actor)
+            # if 'manner_id' in srl:
+            #     actor = srl['manner_id']['value']
+            #     actor = actor[actor.rindex("/") + 1:]
+            #     if not actor in event_actors:
+            #         event_actors.append(actor)
             if 'place_id' in srl:
                 event_location = srl['place_id']['value']
                 event_location = event_location[event_location.rindex("/")+1:]
@@ -253,13 +256,18 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
                     polarity = value
                 elif attribute.startswith("sentiment"):
                     sentiment = Sentiment.from_str(value).value
+                    sentiment = random.choice([-4, -3, -2, -1, 0, 1, 2, 3, 4])
                 elif attribute.startswith("certainty"):
                     certainty = value
+                    certainty = random.choice([-1, -0.5, 0, 0.5, 1])
                 # elif attribute.startswith("emotion"):
                 #         emotion = GoEmotion.as_enum(value)
 
         ## Creating the data structure for each activity
-        activity_result = {'id':activity_id, 'label':activity_label, "actors":event_actors, "location":event_location, "time": event_date,
+        label = ""
+        for patient in event_patients:
+            label += patient+";"
+        activity_result = {'id':activity_id, 'activity':activity_label, "label": label, "agents":event_agents, "patients": event_patients, "location":event_location, "time": event_date,
                            #"perspective": len(event_perspectives)
                            'emotion': emotion,
                            'certainty': certainty,
@@ -268,7 +276,7 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
                            }
 
         ## Saving the activity in different temporal containers
-        if  event_date and agent in event_actors:
+        if  event_date and agent in event_agents:
             history.append(activity_result)
 
 

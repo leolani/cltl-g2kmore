@@ -1,3 +1,6 @@
+import random
+from typing import Hashable
+
 import seaborn as sns
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -73,6 +76,54 @@ def create_timeline_image(name:str, story_of_life:[], target:str,  current_date:
     plt.savefig(path)
     plt.show()
 
+def create_bio_image(name:str, story_of_life:[], target:str,  current_date: datetime):
+    earliest, latest, period, activity_in_period = get_activity_in_period(story_of_life, current_date=current_date)
+    df = pd.DataFrame(activity_in_period, index=period)
+    plt.rcParams['figure.figsize'] = [0.5 * len(activity_in_period), 10]
+
+    sns.set_style("whitegrid", {"grid.color": ".8", "grid.linestyle": ":", 'axes.grid': True})
+    sns.set_context("talk", font_scale=0.5)
+    ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty",  palette="pastel", legend="brief", marker="o")
+    # palette = "pastel, flare/bright/deep/muted/colorblind/dark"
+    cnt = 0
+    for index, row in df.iterrows():
+        cnt +=1
+        x = row['time']
+        y = row['sentiment']
+        activity = row['activity']
+        agent_list = row['agents']
+        patient_list = row['patients']
+        polarity = row['polarity']
+        emotion = row['emotion']
+        agents = "-"
+        patients = "-"
+        for i, actor in enumerate(agent_list):
+            if i%3==0:
+                agents+="\n"
+            agents += actor+";"
+        for i, patient in enumerate(patient_list):
+            if i%3==0:
+                patients+="\n"
+            patients += patient+";"
+        # alternate angles: +45°, -45°
+        angle = 45 #if cnt % 2 == 0 else -45
+        # offset vertically to prevent overlap with marker
+        y_offset = 3 if cnt % 2 == 0 else -3
+        ax.text(x, y,
+                s=" " + str(activity) +agents+patients + "\n" ,
+                rotation=angle,
+                horizontalalignment='left', size='small', color='black', verticalalignment='bottom',
+                linespacing=1.5)
+
+    ax.tick_params(axis='x', rotation=70)
+    # Show the plot
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    path = name+ "_"+target + ".png"
+    # plt.savefig(path, dpi=300, transparent=True)
+    plt.savefig(path)
+    plt.show()
+
+
 
 
 if __name__ == "__main__":
@@ -106,7 +157,7 @@ if __name__ == "__main__":
         story_of_life = query.get_temporal_container_for_agent(brain, agent=target, activity_type=activity_type)
         print('Found:', len(story_of_life), "activities for", target)
         if len(story_of_life)>0:
-            create_timeline_image(activity_type, story_of_life, target, current_date)
+            create_bio_image(activity_type, story_of_life, target, current_date)
     else:
             recent_date = query.get_last_conversation_date(target, brain, current_date, PREVIOUS_DATE)
             #history, gap, future, unknown = query.get_temporal_containers(brain, current_date, recent_date)
