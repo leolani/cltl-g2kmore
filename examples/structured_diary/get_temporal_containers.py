@@ -176,12 +176,38 @@ def get_temporal_containers (brain:LongTermMemory, current_date:datetime, recent
     return history, gap, future, unknown
 
 
+def get_label_dictionary(brain:LongTermMemory, brain_response):
+    label_dictionary = {}
+    for activity in brain_response:
+        label = ""
+        event_patients = []
+        activity_id = activity["id"]["value"]
+        query = util.get_role_relation_query(activity_id)
+        # print(query)
+        srl_response = brain._submit_query(query)
+        for srl in srl_response:
+            if 'patient_id' in srl:
+                actor = srl['patient_id']['value']
+                actor = actor[actor.rindex("/") + 1:].lower()
+                if not actor in event_patients:
+                    event_patients.append(actor)
+        if len(event_patients) > 0:
+            for patient in event_patients:
+                sublabels = label.split("_")
+                for sublabel in sublabels:
+                    if sublabel in label_dictionary:
+                        label_dictionary[sublabel] +=1
+                    else:
+                        label_dictionary[sublabel] = 1
+    return label_dictionary
+
 
 ## This functions gets all activities involving a specific agent from the eKG (brain) and creates a dict for important properties
 ## It returns a single temporal containers.
 def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activity_type:str ="n2mu:activity", label:str=None):
     ##### We get all activities  and divide them into H, G, and F given now and the previous encounter
     history = []
+    stopwords = ["levels", "jan's", "issues"]
     query = None
     if activity_type and label is None:
         # activity_type need to be full uri's prefixed with a namespace.
@@ -256,17 +282,23 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
                     polarity = value
                 elif attribute.startswith("sentiment"):
                     sentiment = Sentiment.from_str(value).value
-                    sentiment = random.choice([-4, -3, -2, -1, 0, 1, 2, 3, 4])
                 elif attribute.startswith("certainty"):
                     certainty = value
-                    certainty = random.choice([-1, -0.5, 0, 0.5, 1])
                 # elif attribute.startswith("emotion"):
                 #         emotion = GoEmotion.as_enum(value)
+        sentiment = random.choice([-4, -3, -2, -1, 0, 1, 2, 3, 4])
+        certainty = random.choice([5, 10, 15, 20, 25, 30, 35, 40])
 
         ## Creating the data structure for each activity
         label = ""
-        for patient in event_patients:
-            label += patient+";"
+        if len(event_patients)>0:
+            for patient in event_patients:
+                label += patient+";"
+        else:
+            label += activity_label
+        for stop in stopwords:
+            label = label.replace(stop, "")
+        label = label.strip("_")
         activity_result = {'id':activity_id, 'activity':activity_label, "label": label, "agents":event_agents, "patients": event_patients, "location":event_location, "time": event_date,
                            #"perspective": len(event_perspectives)
                            'emotion': emotion,

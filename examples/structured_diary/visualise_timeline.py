@@ -90,37 +90,39 @@ def create_bio_image(name:str, story_of_life:[], target:str,  current_date: date
         cnt +=1
         x = row['time']
         y = row['sentiment']
-        activity = row['activity']
+        activity = row['activity']+":\n"
         agent_list = row['agents']
         patient_list = row['patients']
         polarity = row['polarity']
         emotion = row['emotion']
-        agents = "-"
-        patients = "-"
+        agents = "    "
+        patients = ""
         for i, actor in enumerate(agent_list):
-            if i%3==0:
+            if i>0 and i%5==0:
                 agents+="\n"
             agents += actor+";"
+        if len(patient_list)>0:
+            patients = "    "
         for i, patient in enumerate(patient_list):
-            if i%3==0:
-                patients+="\n"
+            if i>0: # and i%5==0:
+                patients+="\n    "
             patients += patient+";"
         # alternate angles: +45°, -45°
-        angle = 45 #if cnt % 2 == 0 else -45
+        angle = 60 #  if cnt % 2 == 0 else 60
         # offset vertically to prevent overlap with marker
         y_offset = 3 if cnt % 2 == 0 else -3
         ax.text(x, y,
-                s=" " + str(activity) +agents+patients + "\n" ,
+                s=" " + str(activity) + patients + "\n" ,
                 rotation=angle,
                 horizontalalignment='left', size='small', color='black', verticalalignment='bottom',
                 linespacing=1.5)
 
-    ax.tick_params(axis='x', rotation=70)
+    ax.tick_params(axis='x') #, rotation=70
     # Show the plot
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
     path = name+ "_"+target + ".png"
-    # plt.savefig(path, dpi=300, transparent=True)
-    plt.savefig(path)
+    plt.savefig(path, dpi=300) #,  transparent=True
+   # plt.savefig(path)
     plt.show()
 
 
