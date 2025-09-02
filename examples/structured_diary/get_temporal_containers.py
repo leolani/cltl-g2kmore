@@ -295,10 +295,11 @@ def get_temporal_container_for_agent (brain:LongTermMemory, agent:"carl", activi
             for patient in event_patients:
                 label += patient+";"
         else:
-            label += activity_label
+            label = activity_label
         for stop in stopwords:
             label = label.replace(stop, "")
-        label = label.strip("_")
+        label = label.strip(';')
+        label = label.strip('_')
         activity_result = {'id':activity_id, 'activity':activity_label, "label": label, "agents":event_agents, "patients": event_patients, "location":event_location, "time": event_date,
                            #"perspective": len(event_perspectives)
                            'emotion': emotion,

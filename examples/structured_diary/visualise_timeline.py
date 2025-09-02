@@ -84,6 +84,7 @@ def create_bio_image(name:str, story_of_life:[], target:str,  current_date: date
     sns.set_style("whitegrid", {"grid.color": ".8", "grid.linestyle": ":", 'axes.grid': True})
     sns.set_context("talk", font_scale=0.5)
     ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, size="certainty",  palette="pastel", legend="brief", marker="o")
+ #   ax = sns.lineplot(x='time', y='sentiment', hue='label', data=df, palette="pastel")
     # palette = "pastel, flare/bright/deep/muted/colorblind/dark"
     cnt = 0
     for index, row in df.iterrows():
@@ -106,7 +107,7 @@ def create_bio_image(name:str, story_of_life:[], target:str,  current_date: date
         for i, patient in enumerate(patient_list):
             if i>0: # and i%5==0:
                 patients+="\n    "
-            patients += patient+";"
+            patients += patient
         # alternate angles: +45°, -45°
         angle = 60 #  if cnt % 2 == 0 else 60
         # offset vertically to prevent overlap with marker
@@ -119,7 +120,7 @@ def create_bio_image(name:str, story_of_life:[], target:str,  current_date: date
 
     ax.tick_params(axis='x') #, rotation=70
     # Show the plot
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+    plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0)
     path = name+ "_"+target + ".png"
     plt.savefig(path, dpi=300) #,  transparent=True
    # plt.savefig(path)
@@ -133,7 +134,9 @@ if __name__ == "__main__":
     what = "bio"
 
     event_type="activity"
+    target = "Abdullah"
     target = "Jan"
+   # target = "Maria"
     activity_type = "n2mu:activity"
     activity_label = "dinner"
     current_date = datetime.today()
